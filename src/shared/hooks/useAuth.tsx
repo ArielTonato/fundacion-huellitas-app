@@ -1,0 +1,90 @@
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import {
+  onAuthStateChanged,
+  getUserProfile,
+  signIn as firebaseSignIn,
+  signUp as firebaseSignUp,
+  signOut as firebaseSignOut,
+  type AuthUser,
+} from '@src/shared/services/firebase/auth';
+import type { User } from '@src/shared/types/models';
+
+interface AuthContextValue {
+  authUser: AuthUser | null;
+  userProfile: User | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, nombre: string, telefono?: string) => Promise<void>;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element {
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(async (user) => {
+      setAuthUser(user);
+      if (user) {
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile);
+      } else {
+        setUserProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const signIn = useCallback(async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const user = await firebaseSignIn(email, password);
+      const profile = await getUserProfile(user.uid);
+      setUserProfile(profile);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const signUp = useCallback(
+    async (email: string, password: string, nombre: string, telefono?: string): Promise<void> => {
+      setLoading(true);
+      try {
+        const user = await firebaseSignUp(email, password, nombre, telefono);
+        const profile = await getUserProfile(user.uid);
+        setUserProfile(profile);
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  const signOut = useCallback(async (): Promise<void> => {
+    await firebaseSignOut();
+    setUserProfile(null);
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ authUser, userProfile, loading, signIn, signUp, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider.');
+  }
+  return context;
+}

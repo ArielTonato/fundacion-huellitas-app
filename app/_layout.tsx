@@ -1,24 +1,66 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { useRouter, useSegments, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
+import { AuthProvider, useAuth } from '@src/shared/hooks/useAuth';
+import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+function RootLayoutNav(): React.JSX.Element {
+  const { authUser, userProfile, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    if (loading) return;
+
+    SplashScreen.hideAsync();
+
+    const firstSegment = segments[0] as string;
+
+    if (!authUser) {
+      if (firstSegment !== '(auth)') {
+        router.replace('/(auth)/login' as never);
+      }
+      return;
+    }
+
+    if (!userProfile) return;
+
+    const role = userProfile.role;
+
+    if (role === 'adoptante' && firstSegment !== '(adoptante)') {
+      router.replace('/(adoptante)/' as never);
+    } else if (role === 'personal' && firstSegment !== '(personal)') {
+      router.replace('/(personal)/' as never);
+    } else if (role === 'superadmin' && firstSegment !== '(superadmin)') {
+      router.replace('/(superadmin)/' as never);
+    }
+  }, [authUser, userProfile, loading, segments]);
+
+  if (loading) {
+    return <LoadingIndicator fullScreen />;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(adoptante)" />
+        <Stack.Screen name="(personal)" />
+        <Stack.Screen name="(superadmin)" />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style="light" />
+    </>
+  );
+}
+
+export default function RootLayout(): React.JSX.Element {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }

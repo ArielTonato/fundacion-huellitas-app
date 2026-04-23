@@ -1,0 +1,67 @@
+import 'dotenv/config';
+import { ConfigContext, ExpoConfig } from 'expo/config';
+
+export default ({ config }: ConfigContext): ExpoConfig => ({
+  ...config,
+  name: 'fundacion-huellitas-app',
+  slug: 'fundacion-huellitas-app',
+  version: '1.0.0',
+  orientation: 'portrait',
+  icon: './assets/images/icon.png',
+  scheme: 'fundacionhuellitasapp',
+  userInterfaceStyle: 'light',
+  newArchEnabled: true,
+  android: {
+    package: 'com.fundacionhuellitas.app',
+    googleServicesFile: './google-services.json',
+    adaptiveIcon: {
+      backgroundColor: '#F4E6D2',
+      foregroundImage: './assets/images/android-icon-foreground.png',
+      backgroundImage: './assets/images/android-icon-background.png',
+      monochromeImage: './assets/images/android-icon-monochrome.png',
+    },
+    edgeToEdgeEnabled: true,
+    config: {
+      googleMaps: {
+        apiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
+    },
+  },
+  plugins: [
+    'expo-router',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/images/splash-icon.png',
+        imageWidth: 200,
+        resizeMode: 'contain',
+        backgroundColor: '#F4E6D2',
+      },
+    ],
+    '@react-native-firebase/app',
+    '@react-native-firebase/auth',
+    '@react-native-firebase/messaging',
+    [
+      'expo-location',
+      {
+        locationAlwaysAndWhenInUsePermission:
+          'Permitir a Huellitas acceder a tu ubicacion para mostrar reportes cercanos.',
+        locationWhenInUsePermission:
+          'Permitir a Huellitas acceder a tu ubicacion para mostrar reportes cercanos.',
+      },
+    ],
+    [
+      'expo-image-picker',
+      {
+        cameraPermission:
+          'Permitir a Huellitas acceder a tu camara para tomar fotos.',
+        photosPermission:
+          'Permitir a Huellitas acceder a tu galeria para seleccionar fotos.',
+      },
+    ],
+  ],
+  experiments: {
+    typedRoutes: true,
+    reactCompiler: true,
+  },
+});
