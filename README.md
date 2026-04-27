@@ -1,276 +1,4 @@
 
-## Plan Consolidado Final — App Fundacion Huellitas
-
-### 1.6 Crear estructura de carpetas
-
-```
-src/
-  theme/
-    colors.ts
-    spacing.ts
-    typography.ts
-    animations.ts
-  modules/
-    adopcion/
-      screens/
-      components/
-      hooks/
-      services/
-      schemas/
-      utils/
-    mascotas/
-      screens/
-      components/
-      hooks/
-      services/
-      schemas/
-    ia-generativa/
-      components/
-      services/
-    superadmin/
-      screens/
-      components/
-      hooks/
-      services/
-  shared/
-    components/
-    hooks/
-    types/
-    utils/
-    services/
-      firebase/
-      notifications/
-functions/
-  src/
-```
-
----
-
-## Fase 2 — Theme, tipos compartidos, servicios Firebase e infraestructura
-
-### 2.1 Archivos de tema
-
-**`src/theme/colors.ts`** — unica fuente de verdad para colores:
-```ts
-export const Colors = {
-  primary: '#1F3A56',
-  secondary: '#4CAF96',
-  accent: '#FF8F4A',
-  background: '#F4E6D2',
-  neutralMid: '#A88F79',
-  neutralLight: '#F2F4F7',
-  textPrimary: '#0F1F2E',
-  textSecondary: '#6B7C87',
-  error: '#E53935',
-  white: '#FFFFFF',
-} as const;
-```
-
-Ningun valor hexadecimal se usa fuera de este archivo en toda la aplicacion.
-
-**`src/theme/spacing.ts`** — escala de espaciado: `{ xs:4, sm:8, md:12, lg:16, xl:24, xxl:32, xxxl:48 }`
-
-**`src/theme/typography.ts`** — tamanos de fuente (12/14/16/18/20/24/32), pesos, line-height
-
-**`src/theme/animations.ts`** — configuraciones de Reanimated con `useReducedMotion()`:
-- Button press: `withSpring` scale a 0.96
-- Card entrance: staggered `FadeInUp`
-- Form submit: checkmark animation
-- Tab transitions: crossfade/slide
-- Todos desactivados/minimizados cuando reduced motion esta activo
-
-### 2.2 Tipos compartidos — `src/shared/types/models.ts`
-
-```ts
-import { Timestamp } from '@react-native-firebase/firestore';
-
-type Role = 'superadmin' | 'personal' | 'adoptante';
-type Especie = 'perro' | 'gato';
-type EstadoAnimal = 'disponible' | 'en_proceso' | 'adoptado';
-type EstadoSolicitud = 'pendiente' | 'en_revision' | 'entrevista_agendada' | 'aprobada' | 'rechazada';
-type EstadoEntrevista = 'programada' | 'completada' | 'cancelada';
-type EstadoReporte = 'activo' | 'resuelto';
-
-interface User {
-  uid: string;
-  email: string;
-  nombre: string;
-  role: Role;
-  telefono?: string;
-  direccion?: string;
-  fcmToken?: string;
-}
-
-interface Edad {
-  anios?: number;
-  meses?: number;
-  dias?: number;
-}
-
-interface Animal {
-  id: string;
-  nombre: string;
-  especie: Especie;
-  raza: string;
-  edad: Edad;
-  sexo: string;
-  tamano: string;
-  descripcion: string;
-  estadoSalud: string;
-  vacunado: boolean;
-  esterilizado: boolean;
-  fotos: string[];       // maximo 5, indice 0 = portada
-  estado: EstadoAnimal;
-  ubicacion: string;
-  creadoPor: string;
-  creadoEn: Timestamp;
-}
-
-interface Solicitud {
-  id: string;
-  animalId: string;
-  adoptanteId: string;
-  nombreCompleto: string;
-  fotoCedulaFrontal: string;    // URL de Storage
-  fotoCedulaPosterior: string;  // URL de Storage
-  telefonoCelular?: string;
-  telefonoFijo?: string;
-  ingresosMensuales: number;
-  fotoUbicacionAnimal: string;  // URL de Storage
-  viveAcompanado: boolean;
-  estado: EstadoSolicitud;
-  creadoEn: Timestamp;
-}
-
-interface Entrevista {
-  id: string;
-  solicitudId: string;
-  fecha: Timestamp;
-  hora: string;
-  notas: string;
-  estado: EstadoEntrevista;
-  resultado?: string;
-}
-
-interface Reporte {
-  id: string;
-  nombre: string;
-  especie: Especie;
-  descripcion: string;
-  fotos: string[];              // maximo 3, indice 0 = portada
-  ultimaUbicacion: {
-    latitude: number;
-    longitude: number;
-    direccion: string;
-  };
-  telefonoContacto: string;     // numero de WhatsApp del reportante
-  reportadoPor: string;
-  estado: EstadoReporte;
-  creadoEn: Timestamp;
-}
-```
-
-### 2.3 Servicios Firebase — `src/shared/services/firebase/`
-
-| Archivo | Responsabilidad |
-|---|---|
-| `config.ts` | Inicializacion de Firebase (SDKs nativos leen `google-services.json` automaticamente) |
-| `auth.ts` | `signIn()`, `signUp()`, `signOut()`, `onAuthStateChanged()` (usando `getAuth`) |
-| `firestore.ts` | Helpers tipados genericos: `getDocument<T>()`, `addDocument<T>()`, `updateDocument<T>()`, `queryDocuments<T>()` |
-| `storage.ts` | `uploadImage(path, uri)` → URL, `deleteImage(path)` (usando `getStorage`) |
-
-**`src/shared/services/api.ts`** — Instancia Axios con `baseURL` desde env, interceptor que adjunta Firebase ID token, interceptor de errores.
-
-**`src/shared/services/notifications/fcm.ts`** — Solicitar permisos, guardar token FCM en `users/{uid}.fcmToken`, listeners `onMessage` y `onNotificationOpenedApp`.
-
-### 2.4 Componentes compartidos — `src/shared/components/`
-
-| Componente | Proposito |
-|---|---|
-| `FormField.tsx` | Wrapper de `Controller` (RHF) + TextInput + error display |
-| `StatusBadge.tsx` | Badge con color segun estado |
-| `LoadingIndicator.tsx` | Spinner con colores del tema |
-| `EmptyState.tsx` | Ilustracion + mensaje cuando no hay datos |
-| `RoleGuard.tsx` | Acepta `allowedRoles: Role[]`, redirige si no autorizado |
-
-### 2.5 Hooks compartidos — `src/shared/hooks/`
-
-| Hook | Proposito |
-|---|---|
-| `useAuth.ts` | Estado de autenticacion + rol del usuario + loading |
-| `useFirestoreQuery.ts` | Suscripcion real-time a queries de Firestore, tipado generico |
-
----
-
-## Fase 3 — Autenticacion y enrutamiento por rol
-
-### 3.1 Estructura de rutas con expo-router (Route Groups)
-
-```
-app/
-  _layout.tsx              ← AuthProvider + redirect segun rol
-  (auth)/
-    _layout.tsx            ← Stack para auth
-    login.tsx
-    register.tsx
-  (adoptante)/
-    _layout.tsx            ← Tabs: Catalogo, Mis Solicitudes, Reportes, Perfil
-    index.tsx              ← CatalogoScreen
-    animal/[id].tsx        ← AnimalDetailScreen
-    solicitud/[animalId].tsx
-    mis-solicitudes.tsx
-    reportes/index.tsx     ← ListaReportesScreen
-    reportes/reportar.tsx  ← ReportarScreen
-    reportes/mapa.tsx      ← MapaScreen
-    reportes/[id].tsx      ← DetalleReporteScreen
-  (personal)/
-    _layout.tsx            ← Tabs: Animales, Solicitudes, Entrevistas, Reportes
-    index.tsx              ← GestionAnimalesScreen
-    animal/registrar.tsx
-    animal/editar/[id].tsx ← EditarAnimalScreen
-    solicitudes/index.tsx
-    solicitudes/[id].tsx
-    entrevistas/index.tsx
-    entrevistas/agendar/[solicitudId].tsx
-    reportes/index.tsx
-    reportes/mapa.tsx
-    reportes/[id].tsx
-  (superadmin)/
-    _layout.tsx
-    index.tsx              ← GestionUsuariosScreen
-```
-
-### 3.2 Flujo de autenticacion
-
-```mermaid
-flowchart TD
-    A[App inicia] --> B{Usuario autenticado?}
-    B -- No --> C["(auth)/login"]
-    B -- Si --> D[Leer role de Firestore]
-    D --> E{role?}
-    E -- adoptante --> F["(adoptante)/"]
-    E -- personal --> G["(personal)/"]
-    E -- superadmin --> H["(superadmin)/"]
-```
-
-### 3.3 `app/_layout.tsx`
-- Wrappea con `AuthProvider` (contexto React)
-- Usa `useAuth()` para determinar estado y rol
-- Muestra splash/loading mientras resuelve auth (fondo `#F4E6D2`)
-- Redirige al grupo de rutas correcto segun rol
-
-### 3.4 Schemas de auth — `src/shared/schemas/`
-
-| Archivo | Campos |
-|---|---|
-| `loginSchema.ts` | email (requerido, email valido), password (requerido, min 6) |
-| `registerSchema.ts` | nombre (requerido), email, password, confirmPassword (must match), telefono (opcional) |
-
-### 3.5 Pantallas de auth
-- `app/(auth)/login.tsx` → formulario con `loginSchema` + RHF
-- `app/(auth)/register.tsx` → formulario con `registerSchema` + RHF (solo rol adoptante)
-
----
 
 ## Fase 4 — Modulo 1: Adopcion
 
@@ -288,8 +16,8 @@ flowchart TD
 | Filtro | Tipo | Opciones |
 |---|---|---|
 | `especie` | Selector | Perro / Gato |
-| `edad` | Rango numerico | Por anos |
-| `tamano` | Selector | Pequeno / Mediano / Grande |
+| `edad` | Rango numerico | Por años |
+| `tamaño` | Selector | Pequeno / Mediano / Grande |
 | `esterilizado` | Toggle | Si / No / Todos |
 
 El query en `useAnimales.ts` agrega `.where('esterilizado', '==', valor)` solo cuando el filtro no esta en "Todos".
@@ -309,7 +37,7 @@ El query en `useAnimales.ts` agrega `.where('esterilizado', '==', valor)` solo c
 
 Cuando `solicitud.viveAcompanado == true`:
 - `AgendarEntrevistaScreen` muestra un banner destacado antes del formulario:
-  > "El adoptante vive acompanado. Debe asistir a la entrevista con al menos una persona mayor de 18 anos que conviva con el/ella."
+  > "El adoptante vive acompanado. Debe asistir a la entrevista con al menos una persona mayor de 18 años que conviva con el/ella."
 - `InterviewCard` muestra un indicador visual recordando el requisito de acompanante
 
 ### 4.5 Componentes — `src/modules/adopcion/components/`
@@ -334,7 +62,7 @@ Cuando `solicitud.viveAcompanado == true`:
 | `edad.meses` | TextInput numerico 0-11, opcional |
 | `edad.dias` | TextInput numerico 0-30, opcional |
 | `sexo` | Selector (macho / hembra) |
-| `tamano` | Selector (pequeno / mediano / grande) |
+| `tamaño` | Selector (pequeno / mediano / grande) |
 | `descripcion` | TextInput multiline |
 | `estadoSalud` | TextInput |
 | `vacunado` | Checkbox / Switch |
@@ -356,7 +84,7 @@ Cuando `solicitud.viveAcompanado == true`:
 | `telefonoFijo` | TextInput numerico | Opcional, pero al menos uno de celular/fijo requerido |
 | `ingresosMensuales` | TextInput numerico | Requerido, positivo |
 | `fotoUbicacionAnimal` | Image picker | Requerido |
-| `viveAcompanado` | Checkbox | Requerido ("Vive usted con al menos una persona mayor de 18 anos?") |
+| `viveAcompanado` | Checkbox | Requerido ("Vive usted con al menos una persona mayor de 18 años?") |
 
 Validacion cruzada: al menos uno de `telefonoCelular` o `telefonoFijo` debe tener valor (via `.test()` de Yup).
 
@@ -368,7 +96,7 @@ Validacion cruzada: al menos uno de `telefonoCelular` o `telefonoFijo` debe tene
 - `raza`: requerido
 - `edad`: objeto con validacion cruzada — al menos uno de `anios`, `meses` o `dias` debe tener valor
 - `sexo`: requerido
-- `tamano`: requerido
+- `tamaño`: requerido
 - `descripcion`: min 20 caracteres, requerido
 - `estadoSalud`: requerido
 - `vacunado`: booleano requerido
@@ -413,7 +141,7 @@ Validacion cruzada: al menos uno de `telefonoCelular` o `telefonoFijo` debe tene
 
 | Hook | Proposito |
 |---|---|
-| `useAnimales.ts` | Suscripcion real-time al catalogo con filtros (especie, edad, tamano, esterilizado) |
+| `useAnimales.ts` | Suscripcion real-time al catalogo con filtros (especie, edad, tamaño, esterilizado) |
 | `useSolicitudes.ts` | Solicitudes del adoptante o todas (personal) |
 | `useEntrevistas.ts` | Entrevistas del personal |
 
@@ -422,7 +150,7 @@ Validacion cruzada: al menos uno de `telefonoCelular` o `telefonoFijo` debe tene
 Funcion pura que recibe `Edad` y retorna string legible:
 - `{ anios: 1, meses: 2 }` → `"1 ano, 2 meses"`
 - `{ dias: 10 }` → `"10 dias"`
-- `{ anios: 3 }` → `"3 anos"`
+- `{ anios: 3 }` → `"3 años"`
 
 Usada en `AnimalCard.tsx` y `AnimalDetailScreen.tsx`.
 
@@ -783,7 +511,7 @@ service firebase.storage {
 | Reportes | Formulario sin campo tipo, limite 14 dias, solo creador resuelve |
 | WhatsApp | Boton abre WhatsApp con numero correcto (prefijo 593) |
 | Reportes ocultos | Resueltos no aparecen en lista ni mapa |
-| Notificaciones | Reporte creado dispara push a usuarios cercanos |
+| Notificaciones | Reporte creado dispara push a usuarios cercaños |
 | IA generativa | Flujo completo en modales desde AnimalDetailScreen |
 | Limite 3/dia | Cuarta generacion muestra error + "Vuelve manana" |
 | Sin marca de agua | Imagen generada se descarga sin watermark |
@@ -804,3 +532,4 @@ service firebase.storage {
 | Fase 5 | Modulo Mascotas | RF-06 a RF-08 verificados, push notifications |
 | Fase 6 | Modulo IA | RF-09 verificado, proxy funcional, rate limit |
 | Fase 7 | Superadmin | Crear/desactivar personal funcional |
+ 

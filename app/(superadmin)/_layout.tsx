@@ -1,58 +1,51 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@src/theme/colors';
 import { RoleGuard } from '@src/shared/components/RoleGuard';
-import { useAuth } from '@src/shared/hooks/useAuth';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Image, View } from 'react-native';
 
 export default function SuperAdminLayout(): React.JSX.Element {
-  const { signOut } = useAuth();
-
-  const handleSignOut = async (): Promise<void> => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error al cerrar sesion.', error);
-      throw error;
-    }
-  };
-
   return (
     <RoleGuard allowedRoles={['superadmin']}>
-      <Stack
+      <Tabs
         screenOptions={{
           headerStyle: { backgroundColor: Colors.primary },
           headerTintColor: Colors.white,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ backgroundColor: Colors.white, borderRadius: 25, padding: 4 }}>
+                <Image
+                  source={require('../../assets/huellitas/logo.png')}
+                  style={{ width: 40, height: 40 }}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          ),
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.textSecondary,
+          tabBarStyle: { backgroundColor: Colors.white },
         }}
       >
-        <Stack.Screen
+        <Tabs.Screen
           name="index"
           options={{
-            title: 'Gestion de Usuarios',
-            headerRight: () => (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  void handleSignOut();
-                }}
-                style={styles.signOutButton}
-              >
-                <Text style={styles.signOutText}>Cerrar sesion</Text>
-              </TouchableOpacity>
+            title: 'Usuarios',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="people" size={size} color={color} />
             ),
           }}
         />
-      </Stack>
+        <Tabs.Screen
+          name="perfil"
+          options={{
+            title: 'Perfil',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
     </RoleGuard>
   );
 }
-
-const styles = StyleSheet.create({
-  signOutButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  signOutText: {
-    color: Colors.white,
-    fontWeight: '600',
-  },
-});

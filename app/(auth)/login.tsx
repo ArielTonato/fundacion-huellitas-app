@@ -9,7 +9,7 @@ import { FontSize } from '@src/theme/typography';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface FirebaseAuthError extends Error {
   code?: string;
@@ -63,6 +63,13 @@ export default function LoginScreen(): React.JSX.Element {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/huellitas/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.title}>Fundacion Huellitas</Text>
           <Text style={styles.subtitle}>Iniciar sesion</Text>
         </View>
@@ -129,6 +136,19 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: Spacing.xxxl,
+  },
+  logoContainer: {
+    width: 90,
+    height: 90,
+    backgroundColor: Colors.white,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  logo: {
+    width: 140,   // un poco más pequeño que el contenedor
+    height: 140,
   },
   title: {
     fontSize: FontSize.xxxl,

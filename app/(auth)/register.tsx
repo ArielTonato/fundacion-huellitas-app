@@ -1,15 +1,15 @@
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
-import { registerSchema, type RegisterFormData } from '@src/shared/schemas/registerSchema';
-import { useAuth } from '@src/shared/hooks/useAuth';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
+import { useAuth } from '@src/shared/hooks/useAuth';
+import { registerSchema, type RegisterFormData } from '@src/shared/schemas/registerSchema';
 import { Colors } from '@src/theme/colors';
-import { FontSize } from '@src/theme/typography';
 import { Spacing } from '@src/theme/spacing';
+import { FontSize } from '@src/theme/typography';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterScreen(): React.JSX.Element {
   const { signUp } = useAuth();
@@ -46,6 +46,11 @@ export default function RegisterScreen(): React.JSX.Element {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
+          <Image
+            source={require('../../assets/huellitas/logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Crear cuenta</Text>
           <Text style={styles.subtitle}>Registrate como adoptante</Text>
         </View>
@@ -138,6 +143,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: Spacing.xxxl,
+  },
+  logo: {
+    width: 400,
+    height: 400,
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: 50,
+    padding: Spacing.sm,
   },
   title: {
     fontSize: FontSize.xxl,

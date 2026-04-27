@@ -76,6 +76,29 @@ export async function getUserProfile(uid: string): Promise<User | null> {
   return { uid: userDoc.id, ...userDoc.data() } as User;
 }
 
+export async function updateUserProfile(uid: string, data: Partial<User>): Promise<void> {
+  const db = getFirestore();
+  const auth = getAuth();
+  const userRef = doc(db, 'users', uid);
+  
+  // Update Firestore
+  await setDoc(userRef, data, { merge: true });
+
+  // Update Auth Email if provided
+  if (data.email && auth.currentUser && data.email !== auth.currentUser.email) {
+    await auth.currentUser.updateEmail(data.email);
+  }
+}
+
+export async function updatePassword(password: string): Promise<void> {
+  const auth = getAuth();
+  if (auth.currentUser) {
+    await auth.currentUser.updatePassword(password);
+  } else {
+    throw new Error('Usuario no autenticado.');
+  }
+}
+
 export async function getIdToken(): Promise<string> {
   const auth = getAuth();
   const user = auth.currentUser;

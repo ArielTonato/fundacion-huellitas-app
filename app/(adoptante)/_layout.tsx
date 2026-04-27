@@ -1,7 +1,8 @@
-import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@src/theme/colors';
 import { RoleGuard } from '@src/shared/components/RoleGuard';
+import { Colors } from '@src/theme/colors';
+import { Tabs } from 'expo-router';
+import { Image, View } from 'react-native';
 
 export default function AdoptanteLayout(): React.JSX.Element {
   return (
@@ -10,6 +11,24 @@ export default function AdoptanteLayout(): React.JSX.Element {
         screenOptions={{
           headerStyle: { backgroundColor: Colors.primary },
           headerTintColor: Colors.white,
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{
+                width: 40,
+                height: 40,
+                backgroundColor: Colors.white,
+                borderRadius: 100,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Image
+                  source={require('../../assets/huellitas/logo.png')}
+                  style={{ width: 70, height: 70 }}
+                  resizeMode="contain"
+                />
+              </View>
+            </View>
+          ),
           tabBarActiveTintColor: Colors.primary,
           tabBarInactiveTintColor: Colors.textSecondary,
           tabBarStyle: { backgroundColor: Colors.white },
@@ -39,6 +58,15 @@ export default function AdoptanteLayout(): React.JSX.Element {
             title: 'Reportes',
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="alert-circle" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="perfil"
+          options={{
+            title: 'Perfil',
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="person" size={size} color={color} />
             ),
           }}
         />

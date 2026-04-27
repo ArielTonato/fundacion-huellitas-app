@@ -16,6 +16,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, nombre: string, telefono?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (data: Partial<User>) => Promise<void>;
+  updateUserPassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,8 +71,35 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     setUserProfile(null);
   }, []);
 
+  const updateProfile = useCallback(
+    async (data: Partial<User>): Promise<void> => {
+      if (!authUser) throw new Error('Usuario no autenticado.');
+      const { updateUserProfile } = await import('@src/shared/services/firebase/auth');
+      await updateUserProfile(authUser.uid, data);
+      const profile = await getUserProfile(authUser.uid);
+      setUserProfile(profile);
+    },
+    [authUser]
+  );
+
+  const updateUserPassword = useCallback(async (password: string): Promise<void> => {
+    const { updatePassword } = await import('@src/shared/services/firebase/auth');
+    await updatePassword(password);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ authUser, userProfile, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{
+        authUser,
+        userProfile,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        updateProfile,
+        updateUserPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
