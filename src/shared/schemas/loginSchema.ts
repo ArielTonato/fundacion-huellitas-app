@@ -7,8 +7,8 @@ export const loginSchema = yup.object({
     .required('El correo electronico es requerido'),
   password: yup
     .string()
-    .min(6, 'La contrasena debe tener al menos 6 caracteres')
-    .required('La contrasena es requerida'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .required('La contraseña es requerida'),
 });
 
 export type LoginFormData = yup.InferType<typeof loginSchema>;

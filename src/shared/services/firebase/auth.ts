@@ -1,5 +1,19 @@
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import {
+  getAuth,
+  onAuthStateChanged as firebaseOnAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  type FirebaseAuthTypes,
+} from '@react-native-firebase/auth';
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp,
+} from '@react-native-firebase/firestore';
 import type { User, Role } from '@src/shared/types/models';
 
 export type AuthUser = FirebaseAuthTypes.User;
@@ -7,11 +21,13 @@ export type AuthUser = FirebaseAuthTypes.User;
 export function onAuthStateChanged(
   callback: (user: AuthUser | null) => void
 ): () => void {
-  return auth().onAuthStateChanged(callback);
+  const auth = getAuth();
+  return firebaseOnAuthStateChanged(auth, callback);
 }
 
 export async function signIn(email: string, password: string): Promise<AuthUser> {
-  const credential = await auth().signInWithEmailAndPassword(email, password);
+  const auth = getAuth();
+  const credential = await signInWithEmailAndPassword(auth, email, password);
   if (!credential.user) {
     throw new Error('No se pudo iniciar sesion.');
   }
@@ -24,37 +40,45 @@ export async function signUp(
   nombre: string,
   telefono?: string
 ): Promise<AuthUser> {
-  const credential = await auth().createUserWithEmailAndPassword(email, password);
+  const auth = getAuth();
+  const db = getFirestore();
+  const credential = await createUserWithEmailAndPassword(auth, email, password);
   if (!credential.user) {
     throw new Error('No se pudo crear la cuenta.');
   }
 
-  await firestore().collection('users').doc(credential.user.uid).set({
+  const userRef = doc(db, 'users', credential.user.uid);
+  await setDoc(userRef, {
     uid: credential.user.uid,
     email,
     nombre,
     role: 'adoptante' as Role,
     telefono: telefono ?? null,
-    creadoEn: firestore.FieldValue.serverTimestamp(),
+    creadoEn: serverTimestamp(),
   });
 
   return credential.user;
 }
 
 export async function signOut(): Promise<void> {
-  await auth().signOut();
+  const auth = getAuth();
+  await firebaseSignOut(auth);
 }
 
 export async function getUserProfile(uid: string): Promise<User | null> {
-  const doc = await firestore().collection('users').doc(uid).get();
-  if (!doc.exists) {
+  const db = getFirestore();
+  const userRef = doc(db, 'users', uid);
+  const userDoc = await getDoc(userRef);
+  
+  if (!userDoc.exists) {
     return null;
   }
-  return { uid: doc.id, ...doc.data() } as User;
+  return { uid: userDoc.id, ...userDoc.data() } as User;
 }
 
 export async function getIdToken(): Promise<string> {
-  const user = auth().currentUser;
+  const auth = getAuth();
+  const user = auth.currentUser;
   if (!user) {
     throw new Error('Usuario no autenticado.');
   }

@@ -1,3 +1,3 @@
-import firebase from '@react-native-firebase/app';
+import { getApp } from '@react-native-firebase/app';
 
-export const firebaseApp = firebase.app();
+export const firebaseApp = getApp();

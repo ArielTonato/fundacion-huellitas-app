@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { useRouter, useSegments, Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
-import 'react-native-reanimated';
-import { AuthProvider, useAuth } from '@src/shared/hooks/useAuth';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
+import { AuthProvider, useAuth } from '@src/shared/hooks/useAuth';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import 'react-native-reanimated';
 
 SplashScreen.preventAutoHideAsync();
 

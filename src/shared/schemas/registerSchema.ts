@@ -11,12 +11,12 @@ export const registerSchema = yup.object({
     .required('El correo electronico es requerido'),
   password: yup
     .string()
-    .min(6, 'La contrasena debe tener al menos 6 caracteres')
-    .required('La contrasena es requerida'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .required('La contraseña es requerida'),
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref('password')], 'Las contrasenas no coinciden')
-    .required('Confirme su contrasena'),
+    .oneOf([yup.ref('password')], 'Las contraseñas no coinciden')
+    .required('Confirme su contraseña'),
   telefono: yup
     .string()
     .matches(/^[0-9]{10}$/, 'Ingrese un numero de telefono valido de 10 digitos')

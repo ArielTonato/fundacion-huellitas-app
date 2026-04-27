@@ -45,14 +45,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      const user = await firebaseSignIn(email, password);
-      const profile = await getUserProfile(user.uid);
-      setUserProfile(profile);
-    } finally {
-      setLoading(false);
-    }
+    const user = await firebaseSignIn(email, password);
+    const profile = await getUserProfile(user.uid);
+    setUserProfile(profile);
   }, []);
 
   const signUp = useCallback(

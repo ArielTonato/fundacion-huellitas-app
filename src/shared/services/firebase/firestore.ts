@@ -1,31 +1,49 @@
-import firestoreModule, {
-  FirebaseFirestoreTypes,
+import {
+  getFirestore as firebaseGetFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  type FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 
 type DocumentData = FirebaseFirestoreTypes.DocumentData;
 type Query = FirebaseFirestoreTypes.Query<DocumentData>;
 
-export function getFirestore(): FirebaseFirestoreTypes.Module {
-  return firestoreModule();
+export function getFirestore() {
+  return firebaseGetFirestore();
 }
+
+export const firestore = getFirestore;
 
 export async function getDocument<T>(
   collectionPath: string,
   docId: string
 ): Promise<T | null> {
-  const doc = await firestoreModule().collection(collectionPath).doc(docId).get();
-  if (!doc.exists) {
+  const db = getFirestore();
+  const docRef = doc(db, collectionPath, docId);
+  const docSnap = await getDoc(docRef);
+  
+  if (!docSnap.exists) {
     return null;
   }
-  return { id: doc.id, ...doc.data() } as T;
+  return { id: docSnap.id, ...docSnap.data() } as T;
 }
 
 export async function addDocument<T extends Record<string, unknown>>(
   collectionPath: string,
   data: T
 ): Promise<string> {
-  const ref = await firestoreModule().collection(collectionPath).add(data);
-  return ref.id;
+  const db = getFirestore();
+  const colRef = collection(db, collectionPath);
+  const docRef = await addDoc(colRef, data);
+  return docRef.id;
 }
 
 export async function setDocument<T extends Record<string, unknown>>(
@@ -34,10 +52,9 @@ export async function setDocument<T extends Record<string, unknown>>(
   data: T,
   options?: { merge: boolean }
 ): Promise<void> {
-  await firestoreModule()
-    .collection(collectionPath)
-    .doc(docId)
-    .set(data, options ?? {});
+  const db = getFirestore();
+  const docRef = doc(db, collectionPath, docId);
+  await setDoc(docRef, data, options ?? { merge: false });
 }
 
 export async function updateDocument(
@@ -45,26 +62,33 @@ export async function updateDocument(
   docId: string,
   data: Record<string, unknown>
 ): Promise<void> {
-  await firestoreModule().collection(collectionPath).doc(docId).update(data);
+  const db = getFirestore();
+  const docRef = doc(db, collectionPath, docId);
+  await updateDoc(docRef, data);
 }
 
 export async function deleteDocument(
   collectionPath: string,
   docId: string
 ): Promise<void> {
-  await firestoreModule().collection(collectionPath).doc(docId).delete();
+  const db = getFirestore();
+  const docRef = doc(db, collectionPath, docId);
+  await deleteDoc(docRef);
 }
 
 export async function queryDocuments<T>(
   collectionPath: string,
   buildQuery?: (ref: Query) => Query
 ): Promise<T[]> {
-  let ref: Query = firestoreModule().collection(collectionPath);
+  const db = getFirestore();
+  let q: Query = collection(db, collectionPath);
+  
   if (buildQuery) {
-    ref = buildQuery(ref);
+    q = buildQuery(q);
   }
-  const snapshot = await ref.get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
 }
 
 export function onSnapshotQuery<T>(
@@ -73,11 +97,15 @@ export function onSnapshotQuery<T>(
   onData: (data: T[]) => void,
   onError: (error: Error) => void
 ): () => void {
-  let ref: Query = firestoreModule().collection(collectionPath);
+  const db = getFirestore();
+  let q: Query = collection(db, collectionPath);
+  
   if (buildQuery) {
-    ref = buildQuery(ref);
+    q = buildQuery(q);
   }
-  return ref.onSnapshot(
+  
+  return onSnapshot(
+    q,
     (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
       onData(data);
@@ -85,5 +113,3 @@ export function onSnapshotQuery<T>(
     (error) => onError(error)
   );
 }
-
-export { firestoreModule as firestore };

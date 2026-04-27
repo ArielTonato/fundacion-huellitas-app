@@ -1,132 +1,6 @@
 
 ## Plan Consolidado Final — App Fundacion Huellitas
 
----
-
-## Fase 0 — Configuracion manual de Firebase y servicios externos
-
-> Esta fase es enteramente manual. No se genera codigo.
-
-### 0.1 Crear proyecto en Firebase Console
-1. Ir a [Firebase Console](https://console.firebase.google.com/)
-2. Crear proyecto: **"fundacion-huellitas"**
-3. Deshabilitar Google Analytics (opcional, no se usa en la app)
-
-### 0.2 Habilitar servicios en Firebase
-
-| Servicio | Configuracion |
-|---|---|
-| **Authentication** | Habilitar proveedor "Correo electronico/contrasena" |
-| **Cloud Firestore** | Crear base de datos en **modo produccion**, region `southamerica-east1` |
-| **Storage** | Iniciar en modo produccion, misma region |
-| **Cloud Functions** | Requiere plan **Blaze** (pago por uso). Activar facturacion |
-| **Cloud Messaging** | Se activa automaticamente con el proyecto |
-
-### 0.3 Registrar app Android
-- Registrar con package `com.fundacionhuellitas.app`
-- Descargar `google-services.json` y colocar en la raiz del proyecto
-- No se registra app iOS (la app es solo Android)
-
-### 0.4 Crear superadmin manualmente
-1. En Firebase Auth Console → crear usuario con email/contrasena
-2. Copiar el UID generado
-3. En Firestore → coleccion `users` → crear documento con ID = UID:
-```json
-{
-  "email": "admin@huellitas.org",
-  "nombre": "Administrador",
-  "role": "superadmin",
-  "creadoEn": "<timestamp>"
-}
-```
-
-### 0.5 Habilitar Google Maps API
-1. Ir a [Google Cloud Console](https://console.cloud.google.com/) (mismo proyecto vinculado a Firebase)
-2. Habilitar: **Maps SDK for Android**
-3. Crear clave de API → restringirla a la app Android registrada
-4. Guardar como `GOOGLE_MAPS_API_KEY` en `.env`
-
-### 0.6 Obtener clave de Gemini API
-1. Ir a [Google AI Studio](https://aistudio.google.com/)
-2. Generar API key para el modelo Imagen 3
-3. Guardar **exclusivamente** en `functions/.env` como `GEMINI_API_KEY` — nunca en el `.env` del cliente
-
-### 0.7 Archivo `.env` del cliente
-```
-GOOGLE_MAPS_API_KEY=<tu-clave>
-CLOUD_FUNCTIONS_URL=<url-base-de-functions>
-```
-
-### 0.8 Archivo `functions/.env`
-```
-GEMINI_API_KEY=<tu-clave>
-```
-
-### 0.9 Actualizar `.gitignore`
-Agregar:
-```
-.env
-google-services.json
-functions/node_modules
-functions/.env
-```
-
----
-
-## Fase 1 — Instalacion de dependencias y scaffolding
-
-### 1.1 Instalar dependencias
-```powershell
-npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/storage @react-native-firebase/messaging expo-dev-client react-native-maps expo-location expo-image-picker
-
-npm install react-hook-form @hookform/resolvers yup axios@1.15.1
-```
-
-> **Riesgo:** `axios@1.15.1` podria no existir en npm (la ultima estable es ~1.7.x). Si la instalacion falla, se necesitara confirmacion para usar la version mas cercana disponible.
-
-### 1.2 Inicializar Cloud Functions
-```powershell
-npm install -g firebase-tools
-firebase login
-firebase init functions
-```
-Seleccionar TypeScript, instalar dependencias.
-
-### 1.3 Migrar `app.json` a `app.config.ts`
-Necesario para leer variables de `.env` dinamicamente. El archivo resultante incluira:
-- Plugins de Firebase (`@react-native-firebase/app`)
-- Plugin de `react-native-maps` con `GOOGLE_MAPS_API_KEY`
-- Plugin de `expo-location` y `expo-image-picker` con descripciones en espanol
-- `android.package`: `com.fundacionhuellitas.app`
-- Sin bloque `ios` (app solo Android)
-
-### 1.4 Ajustar `tsconfig.json`
-Agregar alias para `src/`:
-```json
-{
-  "compilerOptions": {
-    "paths": {
-      "@/*": ["./*"],
-      "@src/*": ["./src/*"]
-    }
-  }
-}
-```
-
-### 1.5 Eliminar archivos de template
-
-**Eliminar:**
-- `app/(tabs)/_layout.tsx`, `index.tsx`, `explore.tsx`
-- `app/modal.tsx`
-- `components/hello-wave.tsx`, `parallax-scroll-view.tsx`, `external-link.tsx`, `haptic-tab.tsx`
-- `components/ui/collapsible.tsx`, `icon-symbol.tsx`, `icon-symbol.ios.tsx`
-- `scripts/reset-project.js`
-- `assets/images/partial-react-logo.png`, `react-logo*.png`
-
-**Mantener y modificar:**
-- `components/themed-text.tsx`, `components/themed-view.tsx` (actualizar paleta)
-- `hooks/use-color-scheme.ts`, `hooks/use-theme-color.ts` (mantener interfaz, actualizar valores)
-
 ### 1.6 Crear estructura de carpetas
 
 ```
@@ -301,9 +175,9 @@ interface Reporte {
 | Archivo | Responsabilidad |
 |---|---|
 | `config.ts` | Inicializacion de Firebase (SDKs nativos leen `google-services.json` automaticamente) |
-| `auth.ts` | `signIn()`, `signUp()`, `signOut()`, `onAuthStateChanged()` |
-| `firestore.ts` | Helpers tipados genericos: `getDoc<T>()`, `addDoc<T>()`, `updateDoc<T>()`, `queryDocs<T>()` |
-| `storage.ts` | `uploadImage(path, uri)` → URL, `deleteImage(path)` |
+| `auth.ts` | `signIn()`, `signUp()`, `signOut()`, `onAuthStateChanged()` (usando `getAuth`) |
+| `firestore.ts` | Helpers tipados genericos: `getDocument<T>()`, `addDocument<T>()`, `updateDocument<T>()`, `queryDocuments<T>()` |
+| `storage.ts` | `uploadImage(path, uri)` → URL, `deleteImage(path)` (usando `getStorage`) |
 
 **`src/shared/services/api.ts`** — Instancia Axios con `baseURL` desde env, interceptor que adjunta Firebase ID token, interceptor de errores.
 
@@ -568,10 +442,18 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
+    function isSuperadmin() {
+      return isAuthenticated() && getRole() == 'superadmin';
+    }
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || getRole() == 'superadmin');
-      allow create, update: if getRole() == 'superadmin';
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
+      allow create: if (isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'adoptante') ||
+        isSuperadmin();
+      allow update: if isSuperadmin();
     }
 
     match /animales/{animalId} {
@@ -790,10 +672,18 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
+    function isSuperadmin() {
+      return isAuthenticated() && getRole() == 'superadmin';
+    }
 
     match /users/{userId} {
-      allow read: if isAuthenticated() && (request.auth.uid == userId || getRole() == 'superadmin');
-      allow create, update: if getRole() == 'superadmin';
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
+      allow create: if (isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'adoptante') ||
+        isSuperadmin();
+      allow update: if isSuperadmin();
     }
 
     match /animales/{animalId} {

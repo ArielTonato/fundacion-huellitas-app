@@ -72,7 +72,7 @@ export default function RegisterScreen(): React.JSX.Element {
           <FormField
             control={control}
             name="password"
-            label="Contrasena"
+            label="Contraseña"
             placeholder="Minimo 6 caracteres"
             secureTextEntry
             errorMessage={errors.password?.message}
@@ -81,8 +81,8 @@ export default function RegisterScreen(): React.JSX.Element {
           <FormField
             control={control}
             name="confirmPassword"
-            label="Confirmar contrasena"
-            placeholder="Repite tu contrasena"
+            label="Confirmar contraseña"
+            placeholder="Repite tu contraseña"
             secureTextEntry
             errorMessage={errors.confirmPassword?.message}
           />

@@ -1,15 +1,33 @@
-import { View, Text, TouchableOpacity, StyleSheet, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
-import { loginSchema, type LoginFormData } from '@src/shared/schemas/loginSchema';
-import { useAuth } from '@src/shared/hooks/useAuth';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
+import { useAuth } from '@src/shared/hooks/useAuth';
+import { loginSchema, type LoginFormData } from '@src/shared/schemas/loginSchema';
 import { Colors } from '@src/theme/colors';
-import { FontSize } from '@src/theme/typography';
 import { Spacing } from '@src/theme/spacing';
+import { FontSize } from '@src/theme/typography';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+interface FirebaseAuthError extends Error {
+  code?: string;
+}
+
+function getSignInErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const authError = error as FirebaseAuthError;
+    if (authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
+      return 'La contraseña es incorrecta.';
+    }
+    if (authError.code === 'auth/user-not-found' || authError.code === 'auth/invalid-email') {
+      return 'No existe una cuenta con ese correo electronico.';
+    }
+    return error.message;
+  }
+  return 'Error al iniciar sesion.';
+}
 
 export default function LoginScreen(): React.JSX.Element {
   const { signIn } = useAuth();
@@ -32,8 +50,7 @@ export default function LoginScreen(): React.JSX.Element {
     try {
       await signIn(data.email, data.password);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al iniciar sesion.';
-      setSubmitError(message);
+      setSubmitError(getSignInErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -64,8 +81,8 @@ export default function LoginScreen(): React.JSX.Element {
           <FormField
             control={control}
             name="password"
-            label="Contrasena"
-            placeholder="Ingrese su contrasena"
+            label="Contraseña"
+            placeholder="Ingrese su contraseña"
             secureTextEntry
             errorMessage={errors.password?.message}
           />
