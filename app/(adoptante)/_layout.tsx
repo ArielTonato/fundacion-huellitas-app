@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RoleGuard } from '@src/shared/components/RoleGuard';
 import { Colors } from '@src/theme/colors';
 import { Tabs } from 'expo-router';
-import { Image, View } from 'react-native';
+import { Image, Text, View } from 'react-native'; // Se agregó Text aquí
 
 export default function AdoptanteLayout(): React.JSX.Element {
   return (
@@ -14,8 +14,8 @@ export default function AdoptanteLayout(): React.JSX.Element {
           headerTitle: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{
-                width: 40,
-                height: 40,
+                width: 35,
+                height: 35,
                 backgroundColor: Colors.white,
                 borderRadius: 100,
                 alignItems: 'center',
@@ -23,10 +23,19 @@ export default function AdoptanteLayout(): React.JSX.Element {
               }}>
                 <Image
                   source={require('../../assets/huellitas/logo.png')}
-                  style={{ width: 70, height: 70 }}
+                  style={{ width: 65, height: 65 }}
                   resizeMode="contain"
                 />
               </View>
+              {/* Nuevo Texto agregado a lado de la imagen */}
+              <Text style={{ 
+                color: Colors.white, 
+                marginLeft: 10, 
+                fontSize: 18, 
+                fontWeight: 'semibold' 
+              }}>
+                Fundación Huellitas
+              </Text>
             </View>
           ),
           tabBarActiveTintColor: Colors.primary,
