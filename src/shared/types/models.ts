@@ -25,6 +25,7 @@ export interface User {
   nombre: string;
   role: Role;
   telefono?: string;
+  fotoPerfilUrl?: string;
   direccion?: string;
   fcmToken?: string;
 }

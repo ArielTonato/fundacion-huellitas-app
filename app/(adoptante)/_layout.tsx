@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
 import { RoleGuard } from '@src/shared/components/RoleGuard';
+import { useAuth } from '@src/shared/hooks/useAuth';
 import { Colors } from '@src/theme/colors';
 import { Tabs } from 'expo-router';
-import { Image, Text, View } from 'react-native'; // Se agregó Text aquí
+import { Image, Text, View } from 'react-native';
 
 export default function AdoptanteLayout(): React.JSX.Element {
+  const { userProfile } = useAuth();
+
   return (
     <RoleGuard allowedRoles={['adoptante']}>
       <Tabs
@@ -75,7 +79,14 @@ export default function AdoptanteLayout(): React.JSX.Element {
           options={{
             title: 'Perfil',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
+              <ProfileAvatar
+                uri={userProfile?.fotoPerfilUrl}
+                size={size}
+                fallbackIconSize={Math.round(size * 0.55)}
+                fallbackIconColor={color}
+                backgroundColor="transparent"
+                borderWidth={0}
+              />
             ),
           }}
         />

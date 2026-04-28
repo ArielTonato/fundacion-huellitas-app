@@ -1,17 +1,37 @@
-import auth, { type FirebaseAuthTypes } from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import type { User, Role } from '@src/shared/types/models';
+import {
+  getAuth,
+  onAuthStateChanged as firebaseOnAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  type FirebaseAuthTypes,
+} from '@react-native-firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from '@react-native-firebase/firestore';
+import type { Role, User } from '@src/shared/types/models';
+import { uploadProfileImage } from './storage';
 
 export type AuthUser = FirebaseAuthTypes.User;
+
+type UserCreationData = {
+  uid: string;
+  email: string;
+  nombre: string;
+  role: Role;
+  creadoEn: unknown;
+  telefono?: string;
+  fotoPerfilUrl?: string;
+};
 
 export function onAuthStateChanged(
   callback: (user: AuthUser | null) => void
 ): () => void {
-  return auth().onAuthStateChanged(callback);
+  const auth = getAuth();
+  return firebaseOnAuthStateChanged(auth, callback);
 }
 
 export async function signIn(email: string, password: string): Promise<AuthUser> {
-  const credential = await auth().signInWithEmailAndPassword(email, password);
+  const auth = getAuth();
+  const credential = await signInWithEmailAndPassword(auth, email, password);
   if (!credential.user) {
     throw new Error('No se pudo iniciar sesion.');
   }
@@ -22,33 +42,47 @@ export async function signUp(
   email: string,
   password: string,
   nombre: string,
-  telefono?: string
+  telefono?: string,
+  fotoPerfilLocalUri?: string
 ): Promise<AuthUser> {
-  const credential = await auth().createUserWithEmailAndPassword(email, password);
+  const auth = getAuth();
+  const db = getFirestore();
+  const credential = await createUserWithEmailAndPassword(auth, email, password);
   if (!credential.user) {
     throw new Error('No se pudo crear la cuenta.');
   }
 
-  const userRef = firestore().collection('users').doc(credential.user.uid);
-  await userRef.set({
+  const userRef = doc(db, 'users', credential.user.uid);
+  const userData: UserCreationData = {
     uid: credential.user.uid,
     email,
     nombre,
     role: 'adoptante' as Role,
-    telefono: telefono ?? null,
-    creadoEn: firestore.FieldValue.serverTimestamp(),
-  });
+    creadoEn: serverTimestamp(),
+  };
+
+  if (telefono) {
+    userData.telefono = telefono;
+  }
+
+  if (fotoPerfilLocalUri) {
+    userData.fotoPerfilUrl = await uploadProfileImage(credential.user.uid, fotoPerfilLocalUri);
+  }
+
+  await setDoc(userRef, userData);
 
   return credential.user;
 }
 
 export async function signOut(): Promise<void> {
-  await auth().signOut();
+  const auth = getAuth();
+  await firebaseSignOut(auth);
 }
 
 export async function getUserProfile(uid: string): Promise<User | null> {
-  const userRef = firestore().collection('users').doc(uid);
-  const userDoc = await userRef.get();
+  const db = getFirestore();
+  const userRef = doc(db, 'users', uid);
+  const userDoc = await getDoc(userRef);
   
   if (!userDoc.exists) {
     return null;
@@ -57,19 +91,22 @@ export async function getUserProfile(uid: string): Promise<User | null> {
 }
 
 export async function updateUserProfile(uid: string, data: Partial<User>): Promise<void> {
-  const userRef = firestore().collection('users').doc(uid);
+  const db = getFirestore();
+  const auth = getAuth();
+  const userRef = doc(db, 'users', uid);
   
   // Update Firestore
-  await userRef.set(data, { merge: true });
+  await setDoc(userRef, data, { merge: true });
 
   // Update Auth Email if provided
-  if (data.email && auth().currentUser && data.email !== auth().currentUser?.email) {
-    await auth().currentUser?.updateEmail(data.email);
+  if (data.email && auth.currentUser && data.email !== auth.currentUser?.email) {
+    await auth.currentUser?.updateEmail(data.email);
   }
 }
 
 export async function updatePassword(password: string): Promise<void> {
-  const user = auth().currentUser;
+  const auth = getAuth();
+  const user = auth.currentUser;
   if (user) {
     await user.updatePassword(password);
   } else {
@@ -78,7 +115,8 @@ export async function updatePassword(password: string): Promise<void> {
 }
 
 export async function getIdToken(): Promise<string> {
-  const user = auth().currentUser;
+  const auth = getAuth();
+  const user = auth.currentUser;
   if (!user) {
     throw new Error('Usuario no autenticado.');
   }

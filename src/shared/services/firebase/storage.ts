@@ -1,21 +1,32 @@
-import storage from '@react-native-firebase/storage';
+import { getStorage, ref, getDownloadURL, deleteObject } from '@react-native-firebase/storage';
 
 export async function uploadImage(
   storagePath: string,
   localUri: string
 ): Promise<string> {
-  const reference = storage().ref(storagePath);
+  const storage = getStorage();
+  const imageRef = ref(storage, storagePath);
   
-  // En React Native Firebase se usa putFile para rutas locales
-  await reference.putFile(localUri);
+  // En RN Firebase, putFile es un método de la referencia
+  // @ts-ignore
+  await imageRef.putFile(localUri);
   
-  const downloadUrl = await reference.getDownloadURL();
+  const downloadUrl = await getDownloadURL(imageRef);
   return downloadUrl;
 }
 
+export function getProfileImageStoragePath(userId: string): string {
+  return `perfil/${userId}/avatar.jpg`;
+}
+
+export async function uploadProfileImage(userId: string, localUri: string): Promise<string> {
+  return uploadImage(getProfileImageStoragePath(userId), localUri);
+}
+
 export async function deleteImage(storagePath: string): Promise<void> {
-  const reference = storage().ref(storagePath);
-  await reference.delete();
+  const storage = getStorage();
+  const imageRef = ref(storage, storagePath);
+  await deleteObject(imageRef);
 }
 
 export async function uploadMultipleImages(

@@ -1,20 +1,26 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import {
-  onAuthStateChanged,
-  getUserProfile,
   signIn as firebaseSignIn,
-  signUp as firebaseSignUp,
   signOut as firebaseSignOut,
+  signUp as firebaseSignUp,
+  getUserProfile,
+  onAuthStateChanged,
   type AuthUser,
 } from '@src/shared/services/firebase/auth';
 import type { User } from '@src/shared/types/models';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 interface AuthContextValue {
   authUser: AuthUser | null;
   userProfile: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, nombre: string, telefono?: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    nombre: string,
+    telefono?: string,
+    fotoPerfilLocalUri?: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
@@ -53,10 +59,16 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   }, []);
 
   const signUp = useCallback(
-    async (email: string, password: string, nombre: string, telefono?: string): Promise<void> => {
+    async (
+      email: string,
+      password: string,
+      nombre: string,
+      telefono?: string,
+      fotoPerfilLocalUri?: string
+    ): Promise<void> => {
       setLoading(true);
       try {
-        const user = await firebaseSignUp(email, password, nombre, telefono);
+        const user = await firebaseSignUp(email, password, nombre, telefono, fotoPerfilLocalUri);
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
       } finally {

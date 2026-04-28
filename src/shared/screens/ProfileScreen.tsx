@@ -1,10 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
+import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
 import { useAuth } from '@src/shared/hooks/useAuth';
+import { uploadProfileImage } from '@src/shared/services/firebase/storage';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
@@ -39,7 +42,8 @@ type ProfileFormInput = {
 type ProfileFormData = yup.InferType<typeof profileSchema>;
 
 export function ProfileScreen(): React.JSX.Element {
-  const { userProfile, signOut, updateProfile, updateUserPassword } = useAuth();
+  const { authUser, userProfile, signOut, updateProfile, updateUserPassword } = useAuth();
+  const [profilePhotoUri, setProfilePhotoUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const {
@@ -71,20 +75,49 @@ export function ProfileScreen(): React.JSX.Element {
     }
   }, [userProfile, reset, initialDataLoaded]);
 
+  const pickProfilePhoto = async (): Promise<void> => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert('Permiso requerido', 'Necesitas permitir el acceso a la galeria para subir una foto.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]?.uri) {
+      setProfilePhotoUri(result.assets[0].uri);
+    }
+  };
+
   const onSubmit = async (data: ProfileFormData): Promise<void> => {
     setSubmitting(true);
     try {
+      let fotoPerfilUrl = userProfile?.fotoPerfilUrl;
+
+      if (profilePhotoUri && authUser) {
+        fotoPerfilUrl = await uploadProfileImage(authUser.uid, profilePhotoUri);
+      }
+
       // Update profile info
       await updateProfile({
         nombre: data.nombre,
         email: data.email,
         ...(data.telefono ? { telefono: data.telefono } : {}),
+        ...(fotoPerfilUrl ? { fotoPerfilUrl } : {}),
       });
 
       // Update password if provided
       if (data.password) {
         await updateUserPassword(data.password);
       }
+
+      setProfilePhotoUri(null);
 
       Alert.alert('Éxito', 'Perfil actualizado correctamente');
     } catch (error) {
@@ -117,6 +150,19 @@ export function ProfileScreen(): React.JSX.Element {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Mis Datos</Text>
+
+          <View style={styles.photoSection}>
+            <ProfileAvatar
+              uri={profilePhotoUri ?? userProfile?.fotoPerfilUrl ?? null}
+              size={120}
+              fallbackIconSize={60}
+            />
+            <TouchableOpacity style={styles.photoButton} onPress={pickProfilePhoto} activeOpacity={0.8}>
+              <Text style={styles.photoButtonText}>
+                {profilePhotoUri || userProfile?.fotoPerfilUrl ? 'Cambiar foto de perfil' : 'Agregar foto de perfil (opcional)'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           
           <FormField
             control={control}
@@ -201,6 +247,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.primary,
     marginBottom: Spacing.lg,
+  },
+  photoSection: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  photoButton: {
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: 999,
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+  },
+  photoButtonText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.accent,
   },
   saveButton: {
     backgroundColor: Colors.accent,

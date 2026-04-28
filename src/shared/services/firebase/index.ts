@@ -1,14 +1,8 @@
-export { onAuthStateChanged, signIn, signUp, signOut, getUserProfile, getIdToken } from './auth';
+export { getIdToken, getUserProfile, onAuthStateChanged, signIn, signOut, signUp } from './auth';
 export type { AuthUser } from './auth';
 export {
-  getFirestore,
-  getDocument,
-  addDocument,
-  setDocument,
-  updateDocument,
-  deleteDocument,
-  queryDocuments,
-  onSnapshotQuery,
-  firestore,
+  addDocument, deleteDocument, firestore, getDocument, getFirestore, onSnapshotQuery, queryDocuments, setDocument,
+  updateDocument
 } from './firestore';
-export { uploadImage, deleteImage, uploadMultipleImages } from './storage';
+export { deleteImage, getProfileImageStoragePath, uploadImage, uploadMultipleImages, uploadProfileImage } from './storage';
+

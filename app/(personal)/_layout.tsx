@@ -1,10 +1,14 @@
-import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@src/theme/colors';
+import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
 import { RoleGuard } from '@src/shared/components/RoleGuard';
+import { useAuth } from '@src/shared/hooks/useAuth';
+import { Colors } from '@src/theme/colors';
+import { Tabs } from 'expo-router';
 import { Image, View } from 'react-native';
 
 export default function PersonalLayout(): React.JSX.Element {
+  const { userProfile } = useAuth();
+
   return (
     <RoleGuard allowedRoles={['personal']}>
       <Tabs
@@ -68,7 +72,14 @@ export default function PersonalLayout(): React.JSX.Element {
           options={{
             title: 'Perfil',
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" size={size} color={color} />
+              <ProfileAvatar
+                uri={userProfile?.fotoPerfilUrl}
+                size={size}
+                fallbackIconSize={Math.round(size * 0.55)}
+                fallbackIconColor={color}
+                backgroundColor="transparent"
+                borderWidth={0}
+              />
             ),
           }}
         />
