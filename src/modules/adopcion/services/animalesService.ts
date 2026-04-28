@@ -19,6 +19,24 @@ type AnimalFirestoreData = Omit<Animal, 'id' | 'creadoEn'> & {
   creadoEn: unknown;
 };
 
+function isRemotePhotoUrl(photo: string): boolean {
+  return photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('gs://');
+}
+
+async function uploadPendingAnimalPhotos(animalId: string, photos: string[]): Promise<string[]> {
+  const uploadedPhotos = await Promise.all(
+    photos.map((photo) => {
+      if (isRemotePhotoUrl(photo)) {
+        return Promise.resolve(photo);
+      }
+
+      return uploadImage(`animales/${animalId}/${Date.now()}_${Math.random().toString(36).slice(2)}`, photo);
+    })
+  );
+
+  return uploadedPhotos;
+}
+
 export async function registrarAnimal(data: AnimalFormData, creadoPor: string): Promise<string> {
   const db = getFirestore();
   const animalRef = doc(collection(db, 'animales'));
@@ -48,6 +66,7 @@ export async function registrarAnimal(data: AnimalFormData, creadoPor: string): 
 export async function editarAnimal(animalId: string, data: AnimalFormData, estado: EstadoAnimal): Promise<void> {
   const db = getFirestore();
   const animalRef = doc(db, 'animales', animalId);
+  const fotos = await uploadPendingAnimalPhotos(animalId, data.fotos);
   await updateDoc(animalRef, {
     nombre: data.nombre,
     especie: data.especie,
@@ -59,7 +78,7 @@ export async function editarAnimal(animalId: string, data: AnimalFormData, estad
     estadoSalud: data.estadoSalud,
     vacunado: data.vacunado,
     esterilizado: data.esterilizado,
-    fotos: data.fotos,
+    fotos,
     estado,
   });
 }

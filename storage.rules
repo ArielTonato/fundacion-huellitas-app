@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isPersonal() {
+      return isAuthenticated() && getRole() == 'personal';
+    }
+
+    function isSuperadmin() {
+      return isAuthenticated() && getRole() == 'superadmin';
+    }
+
+    function isSolicitudOwner(solicitudId) {
+      return isAuthenticated() &&
+        firestore.get(/databases/(default)/documents/solicitudes/$(solicitudId)).data.adoptanteId == request.auth.uid;
+    }
+
+    match /animales/{animalId}/{imageId} {
+      allow read: if isAuthenticated();
+      allow write: if isPersonal();
+    }
+
+    match /solicitudes/{solicitudId}/{imageId} {
+      allow read: if isPersonal() || isSolicitudOwner(solicitudId);
+      allow write: if isAuthenticated() && getRole() == 'adoptante';
+    }
+
+    match /reportes/{reporteId}/{imageId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /perfil/{userId}/{imageId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
