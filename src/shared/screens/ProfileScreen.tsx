@@ -5,7 +5,7 @@ import { useAuth } from '@src/shared/hooks/useAuth';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   Alert,
@@ -22,8 +22,19 @@ const profileSchema = yup.object().shape({
   nombre: yup.string().required('El nombre es requerido'),
   email: yup.string().email('Email invalido').required('El email es requerido'),
   telefono: yup.string().optional(),
-  password: yup.string().min(6, 'Minimo 6 caracteres').optional(),
+  password: yup
+    .string()
+    .transform((value, originalValue) => (originalValue === '' ? undefined : value))
+    .min(6, 'Minimo 6 caracteres')
+    .optional(),
 });
+
+type ProfileFormInput = {
+  nombre: string;
+  email: string;
+  telefono: string | undefined;
+  password: string | undefined;
+};
 
 type ProfileFormData = yup.InferType<typeof profileSchema>;
 
@@ -36,7 +47,7 @@ export function ProfileScreen(): React.JSX.Element {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ProfileFormData>({
+  } = useForm<ProfileFormInput, unknown, ProfileFormData>({
     resolver: yupResolver(profileSchema),
     defaultValues: {
       nombre: userProfile?.nombre || '',
@@ -67,7 +78,7 @@ export function ProfileScreen(): React.JSX.Element {
       await updateProfile({
         nombre: data.nombre,
         email: data.email,
-        telefono: data.telefono || null,
+        ...(data.telefono ? { telefono: data.telefono } : {}),
       });
 
       // Update password if provided
@@ -149,7 +160,7 @@ export function ProfileScreen(): React.JSX.Element {
             disabled={submitting}
           >
             {submitting ? (
-              <LoadingIndicator color="white" size="small" />
+              <LoadingIndicator color={Colors.white} size="small" />
             ) : (
               <Text style={styles.saveButtonText}>Guardar Cambios</Text>
             )}

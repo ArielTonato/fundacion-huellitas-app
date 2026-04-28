@@ -1,23 +1,24 @@
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
-import { View, TextInput, Text, StyleSheet, type TextInputProps } from 'react-native';
 import { Colors } from '@src/theme/colors';
-import { FontSize } from '@src/theme/typography';
 import { Spacing } from '@src/theme/spacing';
+import { FontSize } from '@src/theme/typography';
+import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
+import { StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-interface FormFieldProps<T extends FieldValues> extends Omit<TextInputProps, 'onChange'> {
-  control: Control<T>;
-  name: Path<T>;
+interface FormFieldProps<TFieldValues extends FieldValues, TTransformedValues extends FieldValues = TFieldValues>
+  extends Omit<TextInputProps, 'onChange'> {
+  control: Control<TFieldValues, any, TTransformedValues>;
+  name: Path<TFieldValues>;
   label: string;
   errorMessage?: string;
 }
 
-export function FormField<T extends FieldValues>({
+export function FormField<TFieldValues extends FieldValues, TTransformedValues extends FieldValues = TFieldValues>({
   control,
   name,
   label,
   errorMessage,
   ...inputProps
-}: FormFieldProps<T>): React.JSX.Element {
+}: FormFieldProps<TFieldValues, TTransformedValues>): React.JSX.Element {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
