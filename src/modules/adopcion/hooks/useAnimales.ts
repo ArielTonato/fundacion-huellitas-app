@@ -23,6 +23,7 @@ interface UseAnimalesResult {
   animales: Animal[];
   loading: boolean;
   error: Error | null;
+  refresh: () => void;
 }
 
 function isWithinAgeRange(animal: Animal, filters: AnimalFilters): boolean {
@@ -32,11 +33,18 @@ function isWithinAgeRange(animal: Animal, filters: AnimalFilters): boolean {
   return minValid && maxValid;
 }
 
+function matchesClientFilters(animal: Animal, filters: AnimalFilters): boolean {
+  return (
+    (!filters.especie || animal.especie === filters.especie) &&
+    (!filters.tamano || animal.tamano === filters.tamano) &&
+    (typeof filters.esterilizado !== 'boolean' || animal.esterilizado === filters.esterilizado) &&
+    isWithinAgeRange(animal, filters)
+  );
+}
+
 function buildAnimalConstraints(filters: AnimalFilters): WhereConstraint[] {
   return [
     filters.soloDisponibles ? where('estado', '==', 'disponible') : null,
-    filters.especie ? where('especie', '==', filters.especie) : null,
-    filters.tamano ? where('tamano', '==', filters.tamano) : null,
     typeof filters.esterilizado === 'boolean' ? where('esterilizado', '==', filters.esterilizado) : null,
   ].filter((constraint): constraint is WhereConstraint => Boolean(constraint));
 }
@@ -45,6 +53,7 @@ export function useAnimales(filters: AnimalFilters = {}): UseAnimalesResult {
   const [animales, setAnimales] = useState<Animal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const { especie, edadMinimaAnios, edadMaximaAnios, tamano, esterilizado, soloDisponibles } = filters;
 
   useEffect(() => {
@@ -65,7 +74,7 @@ export function useAnimales(filters: AnimalFilters = {}): UseAnimalesResult {
       (snapshot) => {
         const items = snapshot.docs
           .map((item) => ({ id: item.id, ...item.data() } as Animal))
-          .filter((animal) => isWithinAgeRange(animal, { edadMinimaAnios, edadMaximaAnios }));
+          .filter((animal) => matchesClientFilters(animal, { especie, edadMinimaAnios, edadMaximaAnios, tamano, esterilizado }));
         setAnimales(items);
         setError(null);
         setLoading(false);
@@ -75,7 +84,7 @@ export function useAnimales(filters: AnimalFilters = {}): UseAnimalesResult {
         setLoading(false);
       }
     );
-  }, [especie, edadMinimaAnios, edadMaximaAnios, tamano, esterilizado, soloDisponibles]);
+  }, [especie, edadMinimaAnios, edadMaximaAnios, tamano, esterilizado, soloDisponibles, refreshKey]);
 
-  return { animales, loading, error };
+  return { animales, loading, error, refresh: () => setRefreshKey((current) => current + 1) };
 }
