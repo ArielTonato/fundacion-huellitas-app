@@ -1,34 +1,19 @@
-import {
-  getFirestore as firebaseGetFirestore,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  onSnapshot,
-  query,
+import firebaseFirestore, {
   type FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 
 type DocumentData = FirebaseFirestoreTypes.DocumentData;
 type Query = FirebaseFirestoreTypes.Query<DocumentData>;
 
-export function getFirestore() {
-  return firebaseGetFirestore();
-}
-
-export const firestore = getFirestore;
+export const firestore = () => firebaseFirestore();
+export const getFirestore = firestore;
 
 export async function getDocument<T>(
   collectionPath: string,
   docId: string
 ): Promise<T | null> {
-  const db = getFirestore();
-  const docRef = doc(db, collectionPath, docId);
-  const docSnap = await getDoc(docRef);
+  const docRef = firebaseFirestore().collection(collectionPath).doc(docId);
+  const docSnap = await docRef.get();
   
   if (!docSnap.exists) {
     return null;
@@ -40,9 +25,8 @@ export async function addDocument<T extends Record<string, unknown>>(
   collectionPath: string,
   data: T
 ): Promise<string> {
-  const db = getFirestore();
-  const colRef = collection(db, collectionPath);
-  const docRef = await addDoc(colRef, data);
+  const colRef = firebaseFirestore().collection(collectionPath);
+  const docRef = await colRef.add(data);
   return docRef.id;
 }
 
@@ -52,9 +36,8 @@ export async function setDocument<T extends Record<string, unknown>>(
   data: T,
   options?: { merge: boolean }
 ): Promise<void> {
-  const db = getFirestore();
-  const docRef = doc(db, collectionPath, docId);
-  await setDoc(docRef, data, options ?? { merge: false });
+  const docRef = firebaseFirestore().collection(collectionPath).doc(docId);
+  await docRef.set(data, options ?? { merge: false });
 }
 
 export async function updateDocument(
@@ -62,32 +45,29 @@ export async function updateDocument(
   docId: string,
   data: Record<string, unknown>
 ): Promise<void> {
-  const db = getFirestore();
-  const docRef = doc(db, collectionPath, docId);
-  await updateDoc(docRef, data);
+  const docRef = firebaseFirestore().collection(collectionPath).doc(docId);
+  await docRef.update(data);
 }
 
 export async function deleteDocument(
   collectionPath: string,
   docId: string
 ): Promise<void> {
-  const db = getFirestore();
-  const docRef = doc(db, collectionPath, docId);
-  await deleteDoc(docRef);
+  const docRef = firebaseFirestore().collection(collectionPath).doc(docId);
+  await docRef.delete();
 }
 
 export async function queryDocuments<T>(
   collectionPath: string,
   buildQuery?: (ref: Query) => Query
 ): Promise<T[]> {
-  const db = getFirestore();
-  let q: Query = collection(db, collectionPath);
+  let q: Query = firebaseFirestore().collection(collectionPath);
   
   if (buildQuery) {
     q = buildQuery(q);
   }
   
-  const querySnapshot = await getDocs(q);
+  const querySnapshot = await q.get();
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
 }
 
@@ -97,15 +77,13 @@ export function onSnapshotQuery<T>(
   onData: (data: T[]) => void,
   onError: (error: Error) => void
 ): () => void {
-  const db = getFirestore();
-  let q: Query = collection(db, collectionPath);
+  let q: Query = firebaseFirestore().collection(collectionPath);
   
   if (buildQuery) {
     q = buildQuery(q);
   }
   
-  return onSnapshot(
-    q,
+  return q.onSnapshot(
     (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as T);
       onData(data);

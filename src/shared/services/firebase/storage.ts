@@ -1,26 +1,21 @@
-import {
-  getStorage,
-  ref,
-  uploadFile,
-  getDownloadURL,
-  deleteObject,
-} from '@react-native-firebase/storage';
+import storage from '@react-native-firebase/storage';
 
 export async function uploadImage(
   storagePath: string,
   localUri: string
 ): Promise<string> {
-  const storage = getStorage();
-  const imageRef = ref(storage, storagePath);
-  await uploadFile(imageRef, localUri);
-  const downloadUrl = await getDownloadURL(imageRef);
+  const reference = storage().ref(storagePath);
+  
+  // En React Native Firebase se usa putFile para rutas locales
+  await reference.putFile(localUri);
+  
+  const downloadUrl = await reference.getDownloadURL();
   return downloadUrl;
 }
 
 export async function deleteImage(storagePath: string): Promise<void> {
-  const storage = getStorage();
-  const imageRef = ref(storage, storagePath);
-  await deleteObject(imageRef);
+  const reference = storage().ref(storagePath);
+  await reference.delete();
 }
 
 export async function uploadMultipleImages(
