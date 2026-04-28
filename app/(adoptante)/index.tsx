@@ -299,8 +299,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.primary,
-    fontSize: FontSize.xxxl,
-    fontWeight: '700',
+    fontSize: FontSize.xxl,
+    fontWeight: '800',
     lineHeight: 38,
     marginBottom: Spacing.sm,
   },

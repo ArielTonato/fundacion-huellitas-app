@@ -19,12 +19,12 @@ interface UseSolicitudesResult {
   solicitudes: Solicitud[];
   loading: boolean;
   error: Error | null;
+  refresh: () => void;
 }
 
 function buildSolicitudConstraints(options: UseSolicitudesOptions): WhereConstraint[] {
   return [
     options.adoptanteId ? where('adoptanteId', '==', options.adoptanteId) : null,
-    options.estado ? where('estado', '==', options.estado) : null,
   ].filter((constraint): constraint is WhereConstraint => Boolean(constraint));
 }
 
@@ -32,6 +32,7 @@ export function useSolicitudes(options: UseSolicitudesOptions = {}): UseSolicitu
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const { adoptanteId, estado } = options;
 
   useEffect(() => {
@@ -42,7 +43,10 @@ export function useSolicitudes(options: UseSolicitudesOptions = {}): UseSolicitu
     return onSnapshot(
       solicitudesQuery,
       (snapshot) => {
-        setSolicitudes(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as Solicitud)));
+        const items = snapshot.docs
+          .map((item) => ({ id: item.id, ...item.data() } as Solicitud))
+          .filter((solicitud) => !estado || solicitud.estado === estado);
+        setSolicitudes(items);
         setError(null);
         setLoading(false);
       },
@@ -51,7 +55,7 @@ export function useSolicitudes(options: UseSolicitudesOptions = {}): UseSolicitu
         setLoading(false);
       }
     );
-  }, [adoptanteId, estado]);
+  }, [adoptanteId, estado, refreshKey]);
 
-  return { solicitudes, loading, error };
+  return { solicitudes, loading, error, refresh: () => setRefreshKey((current) => current + 1) };
 }
