@@ -191,6 +191,11 @@ export async function updateUserProfile(uid: string, data: Partial<User>): Promi
     const normalizedPhone = normalizePhoneNumber(updateData.telefono);
     updateData.telefono = normalizedPhone;
 
+    if (currentPhone === normalizedPhone) {
+      await setDoc(userRef, updateData, { merge: true });
+      return;
+    }
+
     const batch = writeBatch(db);
     batch.set(userRef, updateData, { merge: true });
 
