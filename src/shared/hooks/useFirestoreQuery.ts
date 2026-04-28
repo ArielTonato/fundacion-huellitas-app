@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onSnapshotQuery } from '@src/shared/services/firebase/firestore';
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-
-type DocumentData = FirebaseFirestoreTypes.DocumentData;
-type Query = FirebaseFirestoreTypes.Query<DocumentData>;
+import type { Query } from '@react-native-firebase/firestore';
 
 interface UseFirestoreQueryResult<T> {
   data: T[];

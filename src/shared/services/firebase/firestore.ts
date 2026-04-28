@@ -9,11 +9,8 @@ import {
   updateDoc,
   deleteDoc,
   onSnapshot,
-  type FirebaseFirestoreTypes,
+  type Query,
 } from '@react-native-firebase/firestore';
-
-type DocumentData = FirebaseFirestoreTypes.DocumentData;
-type Query = FirebaseFirestoreTypes.Query<DocumentData>;
 
 export const firestore = getFirestore;
 export { getFirestore };
