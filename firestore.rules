@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperadmin() {
+      return isAuthenticated() && getRole() == 'superadmin';
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
+
+      allow create: if (
+        isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'adoptante'
+      ) || isSuperadmin();
+
+      allow update: if isSuperadmin() || (
+        isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.role == resource.data.role
+      );
+    }
+
+    match /userPhones/{phone} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isSuperadmin());
+
+      allow create: if isAuthenticated() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.telefono == phone;
+
+      allow delete: if isAuthenticated() &&
+        (resource.data.uid == request.auth.uid || isSuperadmin());
+    }
+
+    match /animales/{animalId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if getRole() == 'personal';
+    }
+
+    match /solicitudes/{solicitudId} {
+      allow read: if isAuthenticated() &&
+        (resource.data.adoptanteId == request.auth.uid || getRole() == 'personal');
+      allow create: if getRole() == 'adoptante';
+      allow update: if getRole() == 'personal';
+    }
+
+    match /entrevistas/{entrevistaId} {
+      allow read, write: if getRole() == 'personal';
+    }
+
+    match /reportes/{reporteId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() &&
+        resource.data.reportadoPor == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /generaciones/{docId} {
+      allow read: if isAuthenticated() &&
+        resource.data.uid == request.auth.uid;
+      allow write: if isAuthenticated() &&
+        request.resource.data.uid == request.auth.uid;
+    }
+  }
+}

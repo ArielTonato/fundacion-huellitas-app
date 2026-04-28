@@ -18,8 +18,9 @@ interface FirebaseAuthError extends Error {
 function getSignInErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     const authError = error as FirebaseAuthError;
+    console.log('Error de autenticación:', authError);
     if (authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
-      return 'La contraseña es incorrecta.';
+      return 'La contraseña es incorrecta o el correo electronico es invalido.';
     }
     if (authError.code === 'auth/user-not-found' || authError.code === 'auth/invalid-email') {
       return 'No existe una cuenta con ese correo electronico.';

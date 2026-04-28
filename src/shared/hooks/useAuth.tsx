@@ -66,14 +66,9 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       telefono?: string,
       fotoPerfilLocalUri?: string
     ): Promise<void> => {
-      setLoading(true);
-      try {
-        const user = await firebaseSignUp(email, password, nombre, telefono, fotoPerfilLocalUri);
-        const profile = await getUserProfile(user.uid);
-        setUserProfile(profile);
-      } finally {
-        setLoading(false);
-      }
+      const user = await firebaseSignUp(email, password, nombre, telefono, fotoPerfilLocalUri);
+      const profile = await getUserProfile(user.uid);
+      setUserProfile(profile);
     },
     []
   );
