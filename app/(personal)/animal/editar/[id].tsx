@@ -3,7 +3,6 @@ import { AnimalRegistrationForm } from '@src/modules/adopcion/components/AnimalR
 import { useAnimal } from '@src/modules/adopcion/hooks/useAnimal';
 import type { AnimalFormData } from '@src/modules/adopcion/schemas/animalSchema';
 import { editarAnimal } from '@src/modules/adopcion/services/animalesService';
-import { EmptyState } from '@src/shared/components/EmptyState';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import type { EstadoAnimal } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
@@ -57,70 +56,117 @@ export default function EditarAnimalScreen(): React.JSX.Element {
     }
   };
 
-  if (loading) {
-    return <LoadingIndicator fullScreen />;
-  }
-
-  if (!animal) {
-    return (
-      <EmptyState
-        title="Animal no encontrado"
-        message={error?.message ?? 'No se pudo cargar la ficha del animal.'}
-      />
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.78} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Editar animal</Text>
-          <Text style={styles.subtitle}>Actualiza la ficha de {animal.nombre}.</Text>
-        </View>
-      </View>
+    <View style={styles.root}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => router.back()} />
 
-      <AnimalRegistrationForm
-        initialValues={buildInitialValues(animal)}
-        submitLabel="Guardar cambios"
-        submitting={submitting}
-        showStatus
-        initialStatus={animal.estado}
-        onSubmit={handleSubmit}
-      />
+      <View style={styles.sheet} pointerEvents="box-none">
+        <View style={styles.handle} />
+
+        <View style={styles.sheetHeader}>
+          <View>
+            <Text style={styles.sheetTitle}>Editar Mascota</Text>
+            {animal ? <Text style={styles.sheetSubtitle}>{animal.nombre}</Text> : null}
+          </View>
+          <TouchableOpacity style={styles.closeButton} activeOpacity={0.75} onPress={() => router.back()}>
+            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.divider} />
+
+        {loading ? (
+          <LoadingIndicator />
+        ) : !animal ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle-outline" size={48} color={Colors.textSecondary} />
+            <Text style={styles.errorText}>
+              {error?.message ?? 'No se pudo cargar la ficha del animal.'}
+            </Text>
+          </View>
+        ) : (
+          <AnimalRegistrationForm
+            initialValues={buildInitialValues(animal)}
+            submitLabel="Guardar cambios"
+            submitting={submitting}
+            showStatus
+            initialStatus={animal.estado}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  header: {
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  sheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    bottom: 0,
+    height: '90%',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  handle: {
+    alignSelf: 'center',
+    backgroundColor: Colors.neutralLight,
+    borderRadius: 999,
+    height: 4,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.md,
+    width: 40,
+  },
+  sheetHeader: {
     alignItems: 'center',
-    backgroundColor: Colors.background,
     flexDirection: 'row',
-    gap: Spacing.md,
-    padding: Spacing.lg,
-    paddingBottom: 0,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
-  backButton: {
-    padding: Spacing.sm,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
+  sheetTitle: {
     color: Colors.primary,
     fontSize: FontSize.xxl,
     fontWeight: '700',
   },
-  subtitle: {
+  sheetSubtitle: {
     color: Colors.textSecondary,
     fontSize: FontSize.sm,
-    marginTop: Spacing.xs,
+    marginTop: 2,
+  },
+  closeButton: {
+    alignItems: 'center',
+    borderColor: Colors.neutralLight,
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  divider: {
+    backgroundColor: Colors.neutralLight,
+    height: 1,
+    marginBottom: Spacing.xs,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    flex: 1,
+    gap: Spacing.md,
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  errorText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.md,
+    textAlign: 'center',
   },
 });

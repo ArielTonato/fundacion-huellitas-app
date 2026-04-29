@@ -16,7 +16,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const patioFondo = require('../../../assets/huellitas/patio_fondo.png');
 
 type SolicitudFormInput = {
   nombreCompleto: string;
@@ -141,14 +143,6 @@ export default function SolicitudScreen(): React.JSX.Element {
         </View>
       </View>
 
-      <View style={styles.brandBlock}>
-        <View style={styles.logoBox}>
-          <Image source={require('../../../assets/huellitas/logo.png')} style={styles.logo} resizeMode="contain" />
-        </View>
-        <Text style={styles.brandTitle}>Fundación Huellitas</Text>
-        <Text style={styles.brandSubtitle}>Formulario de registro para futuros adoptantes</Text>
-      </View>
-
       <View style={styles.animalSummary}>
         <Image source={{ uri: animal.fotos[0] }} style={styles.animalImage} />
         <View style={styles.animalText}>
@@ -214,13 +208,24 @@ export default function SolicitudScreen(): React.JSX.Element {
 
       <SectionTitle icon="home" title="VIVIENDA" />
       <View style={styles.homeCard}>
-        <AdoptionImageCard
-          label="Subir foto del hogar"
-          uri={imageValues[2]}
-          wide
-          errorMessage={errors.fotoUbicacionAnimal?.message}
-          onPress={() => pickImage('fotoUbicacionAnimal')}
-        />
+        <ImageBackground
+          source={imageValues[2] ? { uri: imageValues[2] } : patioFondo}
+          style={styles.homeImageBackground}
+          imageStyle={styles.homeImageStyle}
+        >
+          <View style={styles.homeOverlay} />
+          <TouchableOpacity
+            style={styles.homeImageButton}
+            activeOpacity={0.8}
+            onPress={() => pickImage('fotoUbicacionAnimal')}
+          >
+            <Ionicons name="camera" size={28} color={Colors.white} />
+            <Text style={styles.homeImageLabel}>Subir foto del hogar</Text>
+          </TouchableOpacity>
+        </ImageBackground>
+        {errors.fotoUbicacionAnimal?.message ? (
+          <Text style={styles.inlineError}>{errors.fotoUbicacionAnimal.message}</Text>
+        ) : null}
         <Text style={styles.homeHelp}>Foto del lugar donde vivirá el animal (patio, sala o habitación).</Text>
       </View>
 
@@ -297,38 +302,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 24,
   },
-  brandBlock: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  logoBox: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 16,
-    height: 64,
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-    shadowColor: Colors.textPrimary,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    width: 64,
-  },
-  logo: {
-    height: 48,
-    width: 48,
-  },
-  brandTitle: {
-    color: Colors.textPrimary,
-    fontSize: FontSize.lg,
-    fontWeight: '600',
-  },
-  brandSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.md,
-    marginTop: Spacing.xs,
-    textAlign: 'center',
-  },
   animalSummary: {
     alignItems: 'center',
     backgroundColor: Colors.white,
@@ -404,6 +377,30 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
     overflow: 'hidden',
   },
+  homeImageBackground: {
+    height: 160,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  homeImageStyle: {
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  homeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  homeImageButton: {
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  homeImageLabel: {
+    color: Colors.white,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
   homeHelp: {
     color: Colors.textPrimary,
     fontSize: FontSize.md,
@@ -438,6 +435,7 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: FontSize.xs,
     marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
   },
   submitError: {
     color: Colors.error,

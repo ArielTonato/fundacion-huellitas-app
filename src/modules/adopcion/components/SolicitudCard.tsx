@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { StatusBadge } from '@src/shared/components/StatusBadge';
 import type { EstadoSolicitud, Solicitud } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
-import { FontSize } from '@src/theme/typography';
 import { Spacing } from '@src/theme/spacing';
+import { FontSize } from '@src/theme/typography';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface SolicitudCardProps {
   solicitud: Solicitud;
