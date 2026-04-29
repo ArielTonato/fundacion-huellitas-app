@@ -62,6 +62,7 @@ const DEFAULT_VALUES: AnimalFormData = {
   estadoSalud: '',
   vacunado: false,
   esterilizado: false,
+  desparasitado: false,
   fotos: [],
 };
 
@@ -258,6 +259,13 @@ export function AnimalRegistrationForm({
           name="esterilizado"
           render={({ field: { value, onChange } }) => (
             <BooleanToggle label="Esterilizado" value={value} onChange={onChange} />
+          )}
+        />
+        <Controller
+          control={control}
+          name="desparasitado"
+          render={({ field: { value, onChange } }) => (
+            <BooleanToggle label="Desparasitado" value={value} onChange={onChange} />
           )}
         />
       </View>

@@ -28,6 +28,7 @@ function buildInitialValues(animal: NonNullable<ReturnType<typeof useAnimal>['an
     estadoSalud: animal.estadoSalud,
     vacunado: animal.vacunado,
     esterilizado: animal.esterilizado,
+    desparasitado: animal.desparasitado,
     fotos: animal.fotos,
   };
 }

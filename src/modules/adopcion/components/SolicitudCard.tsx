@@ -1,9 +1,10 @@
+import { useAnimal } from '@src/modules/adopcion/hooks/useAnimal';
 import { StatusBadge } from '@src/shared/components/StatusBadge';
 import type { EstadoSolicitud, Solicitud } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 
 interface SolicitudCardProps {
   solicitud: Solicitud;
@@ -40,12 +41,21 @@ function formatCreatedAt(solicitud: Solicitud): string {
 }
 
 export function SolicitudCard({ solicitud }: SolicitudCardProps): React.JSX.Element {
+  const { animal } = useAnimal(solicitud.animalId);
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
+        {animal?.fotos[0] ? (
+          <Image source={{ uri: animal.fotos[0] }} style={styles.animalPhoto} />
+        ) : (
+          <View style={[styles.animalPhoto, styles.animalPhotoPlaceholder]} />
+        )}
         <View style={styles.titleGroup}>
-          <Text style={styles.title}>Solicitud de adopción</Text>
-          <Text style={styles.subtitle}>Animal #{solicitud.animalId.slice(0, 8)}</Text>
+          <Text style={styles.title}>{animal?.nombre ?? 'Cargando...'}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>
+            {animal ? `${animal.especie} • ${animal.raza}` : `#${solicitud.animalId.slice(0, 8)}`}
+          </Text>
         </View>
         <StatusBadge label={STATUS_LABELS[solicitud.estado]} variant={STATUS_VARIANTS[solicitud.estado]} />
       </View>
@@ -81,10 +91,18 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   header: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     flexDirection: 'row',
     gap: Spacing.md,
     justifyContent: 'space-between',
+  },
+  animalPhoto: {
+    borderRadius: 12,
+    height: 56,
+    width: 56,
+  },
+  animalPhotoPlaceholder: {
+    backgroundColor: Colors.neutralLight,
   },
   titleGroup: {
     flex: 1,

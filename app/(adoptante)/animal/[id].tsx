@@ -52,6 +52,7 @@ export default function AnimalDetailScreen(): React.JSX.Element {
   const healthChips = [
     { label: 'Vacunado', active: animal.vacunado },
     { label: 'Esterilizado', active: animal.esterilizado },
+    { label: 'Desparasitado', active: animal.desparasitado },
   ].filter((c) => c.active);
 
   const requestAdoption = (): void => {
@@ -107,10 +108,14 @@ export default function AnimalDetailScreen(): React.JSX.Element {
             </View>
           </View>
 
-          {/* Health chips */}
-          {healthChips.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Salud y Cuidados</Text>
+          {/* Estado de salud + health chips */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Salud y Cuidados</Text>
+            <View style={styles.estadoSaludRow}>
+              <Ionicons name="medkit-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.estadoSaludText}>{animal.estadoSalud}</Text>
+            </View>
+            {healthChips.length > 0 && (
               <View style={styles.healthRow}>
                 {healthChips.map((chip) => (
                   <View key={chip.label} style={styles.healthChip}>
@@ -119,8 +124,8 @@ export default function AnimalDetailScreen(): React.JSX.Element {
                   </View>
                 ))}
               </View>
-            </View>
-          )}
+            )}
+          </View>
 
           {/* Description */}
           <View style={styles.section}>
@@ -268,6 +273,17 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     fontWeight: '700',
     marginBottom: Spacing.md,
+  },
+  estadoSaludRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  estadoSaludText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    flex: 1,
   },
   healthRow: {
     flexDirection: 'row',

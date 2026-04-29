@@ -27,21 +27,31 @@ export async function crearSolicitud(
     data.fotoCedulaFrontal,
     data.fotoCedulaPosterior,
     data.fotoUbicacionAnimal,
-  ]);
+  ], {
+    customMetadata: {
+      uploadedBy: adoptanteId,
+    },
+  });
   const solicitudData: SolicitudFirestoreData = {
     animalId,
     adoptanteId,
     nombreCompleto: data.nombreCompleto,
     fotoCedulaFrontal: fotos[0],
     fotoCedulaPosterior: fotos[1],
-    telefonoCelular: data.telefonoCelular,
-    telefonoFijo: data.telefonoFijo,
     ingresosMensuales: data.ingresosMensuales,
     fotoUbicacionAnimal: fotos[2],
     viveAcompanado: data.viveAcompanado,
     estado: 'pendiente',
     creadoEn: serverTimestamp(),
   };
+
+  if (data.telefonoCelular) {
+    solicitudData.telefonoCelular = data.telefonoCelular;
+  }
+
+  if (data.telefonoFijo) {
+    solicitudData.telefonoFijo = data.telefonoFijo;
+  }
 
   await setDoc(solicitudRef, solicitudData);
   return solicitudRef.id;

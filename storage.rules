@@ -17,19 +17,16 @@ service firebase.storage {
       return isAuthenticated() && getRole() == 'superadmin';
     }
 
-    function isSolicitudOwner(solicitudId) {
-      return isAuthenticated() &&
-        firestore.get(/databases/(default)/documents/solicitudes/$(solicitudId)).data.adoptanteId == request.auth.uid;
-    }
-
     match /animales/{animalId}/{imageId} {
       allow read: if isAuthenticated();
       allow write: if isPersonal();
     }
 
     match /solicitudes/{solicitudId}/{imageId} {
-      allow read: if isPersonal() || isSolicitudOwner(solicitudId);
-      allow write: if isAuthenticated() && getRole() == 'adoptante';
+      allow read: if isPersonal() ||
+        (isAuthenticated() && resource.metadata.uploadedBy == request.auth.uid);
+      allow write: if isAuthenticated() &&
+        request.resource.metadata.uploadedBy == request.auth.uid;
     }
 
     match /reportes/{reporteId}/{imageId} {

@@ -28,6 +28,7 @@ export const animalSchema = yup.object({
   estadoSalud: yup.string().required('El estado de salud es requerido'),
   vacunado: yup.boolean().required('Indique si esta vacunado'),
   esterilizado: yup.boolean().required('Indique si esta esterilizado'),
+  desparasitado: yup.boolean().required('Indique si esta desparasitado'),
   fotos: yup.array().of(yup.string().required()).min(1, 'Agregue al menos una foto').max(5, 'Maximo 5 fotos').required(),
 });
 

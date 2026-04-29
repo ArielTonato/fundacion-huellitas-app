@@ -1,15 +1,16 @@
-import { getStorage, ref, getDownloadURL, deleteObject } from '@react-native-firebase/storage';
+import { getStorage, ref, getDownloadURL, deleteObject, type FirebaseStorageTypes } from '@react-native-firebase/storage';
 
 export async function uploadImage(
   storagePath: string,
-  localUri: string
+  localUri: string,
+  metadata?: FirebaseStorageTypes.SettableMetadata
 ): Promise<string> {
   const storage = getStorage();
   const imageRef = ref(storage, storagePath);
   
   // En RN Firebase, putFile es un método de la referencia
   // @ts-ignore
-  await imageRef.putFile(localUri);
+  await imageRef.putFile(localUri, metadata);
   
   const downloadUrl = await getDownloadURL(imageRef);
   return downloadUrl;
@@ -31,11 +32,12 @@ export async function deleteImage(storagePath: string): Promise<void> {
 
 export async function uploadMultipleImages(
   basePath: string,
-  localUris: string[]
+  localUris: string[],
+  metadata?: FirebaseStorageTypes.SettableMetadata
 ): Promise<string[]> {
   const uploadPromises = localUris.map((uri, index) => {
     const fileName = `${Date.now()}_${index}`;
-    return uploadImage(`${basePath}/${fileName}`, uri);
+    return uploadImage(`${basePath}/${fileName}`, uri, metadata);
   });
   return Promise.all(uploadPromises);
 }

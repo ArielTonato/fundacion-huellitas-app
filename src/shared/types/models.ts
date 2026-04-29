@@ -48,6 +48,7 @@ export interface Animal {
   estadoSalud: string;
   vacunado: boolean;
   esterilizado: boolean;
+  desparasitado: boolean;
   fotos: string[];
   estado: EstadoAnimal;
   ubicacion: string;

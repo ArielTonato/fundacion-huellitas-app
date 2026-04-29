@@ -52,6 +52,7 @@ export async function registrarAnimal(data: AnimalFormData, creadoPor: string): 
     estadoSalud: data.estadoSalud,
     vacunado: data.vacunado,
     esterilizado: data.esterilizado,
+    desparasitado: data.desparasitado,
     fotos,
     estado: 'disponible',
     ubicacion: FUNDACION_UBICACION,
@@ -78,6 +79,7 @@ export async function editarAnimal(animalId: string, data: AnimalFormData, estad
     estadoSalud: data.estadoSalud,
     vacunado: data.vacunado,
     esterilizado: data.esterilizado,
+    desparasitado: data.desparasitado,
     fotos,
     estado,
   });
