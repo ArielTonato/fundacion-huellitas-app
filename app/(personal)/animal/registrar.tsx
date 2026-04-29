@@ -4,8 +4,8 @@ import type { AnimalFormData } from '@src/modules/adopcion/schemas/animalSchema'
 import { registrarAnimal } from '@src/modules/adopcion/services/animalesService';
 import { useAuth } from '@src/shared/hooks/useAuth';
 import { Colors } from '@src/theme/colors';
-import { FontSize } from '@src/theme/typography';
 import { Spacing } from '@src/theme/spacing';
+import { FontSize } from '@src/theme/typography';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -34,49 +34,77 @@ export default function RegistroAnimalScreen(): React.JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} activeOpacity={0.78} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color={Colors.primary} />
-        </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Registrar animal</Text>
-          <Text style={styles.subtitle}>Completa la ficha para publicarlo en el catálogo.</Text>
-        </View>
-      </View>
+    <View style={styles.root}>
+      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => router.back()} />
 
-      <AnimalRegistrationForm submitLabel="Guardar animal" submitting={submitting} onSubmit={handleSubmit} />
+      <View style={styles.sheet} pointerEvents="box-none">
+        <View style={styles.handle} />
+
+        <View style={styles.sheetHeader}>
+          <Text style={styles.sheetTitle}>Nueva Mascota</Text>
+          <TouchableOpacity style={styles.closeButton} activeOpacity={0.75} onPress={() => router.back()}>
+            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.divider} />
+
+        <AnimalRegistrationForm submitLabel="Guardar Mascota" submitting={submitting} onSubmit={handleSubmit} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
-  header: {
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  sheet: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    bottom: 0,
+    height: '80%',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  handle: {
+    alignSelf: 'center',
+    backgroundColor: Colors.neutralLight,
+    borderRadius: 999,
+    height: 4,
+    marginBottom: Spacing.md,
+    width: 40,
+  },
+  sheetHeader: {
     alignItems: 'center',
-    backgroundColor: Colors.background,
     flexDirection: 'row',
-    gap: Spacing.md,
-    padding: Spacing.lg,
-    paddingBottom: 0,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
-  backButton: {
-    padding: Spacing.sm,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
+  sheetTitle: {
     color: Colors.primary,
     fontSize: FontSize.xxl,
     fontWeight: '700',
   },
-  subtitle: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.sm,
-    marginTop: Spacing.xs,
+  closeButton: {
+    alignItems: 'center',
+    borderColor: Colors.neutralLight,
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  divider: {
+    backgroundColor: Colors.neutralLight,
+    height: 1,
+    marginBottom: Spacing.xs,
   },
 });

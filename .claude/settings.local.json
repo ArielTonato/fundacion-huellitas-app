@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv \"app/\\(personal\\)/solicitudes/[id].tsx\" \"app/\\(personal\\)/\\(tabs\\)/solicitudes/[id].tsx\")",
+      "Bash(mv \"app/\\(personal\\)/entrevistas/agendar/[solicitudId].tsx\" \"app/\\(personal\\)/\\(tabs\\)/entrevistas/agendar/[solicitudId].tsx\")",
+      "Bash(mv \"app/\\(personal\\)/reportes/[id].tsx\" \"app/\\(personal\\)/\\(tabs\\)/reportes/[id].tsx\")"
+    ]
+  }
+}
