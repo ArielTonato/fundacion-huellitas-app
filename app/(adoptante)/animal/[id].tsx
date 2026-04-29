@@ -1,16 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useAnimal } from '@src/modules/adopcion/hooks/useAnimal';
+import { useSolicitudes } from '@src/modules/adopcion/hooks/useSolicitudes';
 import { formatEdad } from '@src/modules/adopcion/utils/formatEdad';
+import { GenerativeAIFlow } from '@src/modules/ia-generativa/components/GenerativeAIFlow';
 import { EmptyState } from '@src/shared/components/EmptyState';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { StatusBadge } from '@src/shared/components/StatusBadge';
+import { useAuth } from '@src/shared/hooks/useAuth';
 import type { EstadoAnimal } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Alert, Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import { useState } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HERO_HEIGHT = 400;
@@ -34,7 +38,13 @@ const STATUS_VARIANTS: Record<EstadoAnimal, 'success' | 'warning' | 'neutral'> =
 export default function AnimalDetailScreen(): React.JSX.Element {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { authUser } = useAuth();
   const { animal, loading, error } = useAnimal(id);
+  const { solicitudes } = useSolicitudes({ adoptanteId: authUser?.uid });
+  const [duplicateModalVisible, setDuplicateModalVisible] = useState(false);
+  const [aiFlowVisible, setAiFlowVisible] = useState(false);
+  const [galleryVisible, setGalleryVisible] = useState(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0);
 
   if (loading) {
     return <LoadingIndicator fullScreen />;
@@ -55,17 +65,91 @@ export default function AnimalDetailScreen(): React.JSX.Element {
     { label: 'Desparasitado', active: animal.desparasitado },
   ].filter((c) => c.active);
 
+  const yaEnvioSolicitud = solicitudes.some((s) => s.animalId === animal.id);
+
   const requestAdoption = (): void => {
+    if (yaEnvioSolicitud) {
+      setDuplicateModalVisible(true);
+      return;
+    }
     router.push(`/(adoptante)/solicitud/${animal.id}` as never);
   };
 
   const openGenerativePreview = (): void => {
-    Alert.alert('Proximamente', 'La vista de IA generativa se implementara en la Fase 6.');
+    setAiFlowVisible(true);
+  };
+
+  const openGallery = (index: number): void => {
+    setGalleryInitialIndex(index);
+    setGalleryVisible(true);
   };
 
   return (
     <View style={styles.root}>
-      <ScrollView  showsVerticalScrollIndicator={false}>
+      {/* Modal solicitud duplicada */}
+      <GenerativeAIFlow visible={aiFlowVisible} animal={animal} onClose={() => setAiFlowVisible(false)} />
+
+      <Modal visible={galleryVisible} transparent animationType="fade" onRequestClose={() => setGalleryVisible(false)}>
+        <View style={styles.galleryBackdrop}>
+          <TouchableOpacity style={styles.galleryCloseButton} activeOpacity={0.86} onPress={() => setGalleryVisible(false)}>
+            <Ionicons name="close" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <FlatList
+            key={galleryInitialIndex}
+            data={animal.fotos}
+            keyExtractor={(item) => item}
+            horizontal
+            pagingEnabled
+            initialScrollIndex={galleryInitialIndex}
+            getItemLayout={(_, index) => ({
+              index,
+              length: SCREEN_WIDTH,
+              offset: SCREEN_WIDTH * index,
+            })}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.galleryImageWrap}>
+                <Image source={{ uri: item }} style={styles.galleryImage} resizeMode="contain" />
+              </View>
+            )}
+          />
+        </View>
+      </Modal>
+
+      <Modal visible={duplicateModalVisible} transparent animationType="fade" onRequestClose={() => setDuplicateModalVisible(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setDuplicateModalVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <View style={styles.modalIconBox}>
+              <Ionicons name="checkmark-circle" size={48} color={Colors.secondary} />
+            </View>
+            <Text style={styles.modalTitle}>Solicitud enviada</Text>
+            <Text style={styles.modalBody}>
+              Ya enviaste una solicitud de adopción para{' '}
+              <Text style={styles.modalAnimalName}>{animal.nombre}</Text>.
+              {'\n\n'}Puedes revisar el estado en Mis solicitudes.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalPrimaryButton}
+              activeOpacity={0.86}
+              onPress={() => {
+                setDuplicateModalVisible(false);
+                router.push('/(adoptante)/mis-solicitudes' as never);
+              }}
+            >
+              <Text style={styles.modalPrimaryButtonText}>Ver mis solicitudes</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalSecondaryButton}
+              activeOpacity={0.86}
+              onPress={() => setDuplicateModalVisible(false)}
+            >
+              <Text style={styles.modalSecondaryButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.heroContainer}>
           <FlatList
@@ -74,8 +158,10 @@ export default function AnimalDetailScreen(): React.JSX.Element {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.heroImage} resizeMode="cover" />
+            renderItem={({ item, index }) => (
+              <Pressable onPress={() => openGallery(index)}>
+                <Image source={{ uri: item }} style={styles.heroImage} resizeMode="cover" />
+              </Pressable>
             )}
           />
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.8}>
@@ -90,7 +176,6 @@ export default function AnimalDetailScreen(): React.JSX.Element {
             <Text style={styles.name}>{animal.nombre}</Text>
             <StatusBadge label={STATUS_LABELS[animal.estado]} variant={STATUS_VARIANTS[animal.estado]} />
           </View>
-
 
           {/* Stat chips */}
           <View style={styles.statsRow}>
@@ -188,7 +273,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-
   heroContainer: {
     width: SCREEN_WIDTH,
     height: HERO_HEIGHT,
@@ -196,6 +280,32 @@ const styles = StyleSheet.create({
   heroImage: {
     width: SCREEN_WIDTH,
     height: HERO_HEIGHT,
+  },
+  galleryBackdrop: {
+    backgroundColor: 'rgba(15, 31, 46, 0.72)',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  galleryCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: Spacing.lg,
+    top: 52,
+    width: 44,
+    zIndex: 2,
+  },
+  galleryImageWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: SCREEN_WIDTH,
+  },
+  galleryImage: {
+    height: '82%',
+    width: SCREEN_WIDTH,
   },
   backButton: {
     alignItems: 'center',
@@ -230,16 +340,6 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
     flex: 1,
     marginRight: Spacing.md,
-  },
-  locationRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: Spacing.xs,
-    marginBottom: Spacing.lg,
-  },
-  locationText: {
-    color: Colors.textSecondary,
-    fontSize: FontSize.sm,
   },
   statsRow: {
     flexDirection: 'row',
@@ -385,5 +485,64 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: FontSize.md,
     fontWeight: '700',
+  },
+  // Modal
+  modalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  modalCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 24,
+    padding: Spacing.xl,
+    width: '100%',
+  },
+  modalIconBox: {
+    marginBottom: Spacing.md,
+  },
+  modalTitle: {
+    color: Colors.textPrimary,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  modalBody: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    lineHeight: 22,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+  modalAnimalName: {
+    color: Colors.primary,
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  modalPrimaryButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: Spacing.md,
+    width: '100%',
+  },
+  modalPrimaryButtonText: {
+    color: Colors.white,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
+  modalSecondaryButton: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  modalSecondaryButtonText: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    fontWeight: '600',
   },
 });

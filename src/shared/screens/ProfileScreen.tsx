@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
@@ -97,6 +98,7 @@ export function ProfileScreen(): React.JSX.Element {
 
   const onSubmit = async (data: ProfileFormData): Promise<void> => {
     setSubmitting(true);
+    const emailChanged = data.email !== authUser?.email;
     try {
       let fotoPerfilUrl = userProfile?.fotoPerfilUrl;
 
@@ -104,7 +106,6 @@ export function ProfileScreen(): React.JSX.Element {
         fotoPerfilUrl = await uploadProfileImage(authUser.uid, profilePhotoUri);
       }
 
-      // Update profile info
       await updateProfile({
         nombre: data.nombre,
         email: data.email,
@@ -112,14 +113,20 @@ export function ProfileScreen(): React.JSX.Element {
         ...(fotoPerfilUrl ? { fotoPerfilUrl } : {}),
       });
 
-      // Update password if provided
       if (data.password) {
         await updateUserPassword(data.password);
       }
 
       setProfilePhotoUri(null);
 
-      Alert.alert('Éxito', 'Perfil actualizado correctamente');
+      if (emailChanged) {
+        Alert.alert(
+          'Verifica tu nuevo correo',
+          `Enviamos un enlace de verificación a ${data.email}. Tu correo cambiará en la app al hacer clic en el enlace.`
+        );
+      } else {
+        Alert.alert('Éxito', 'Perfil actualizado correctamente');
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al actualizar el perfil';
       Alert.alert('Error', message);
@@ -158,6 +165,7 @@ export function ProfileScreen(): React.JSX.Element {
               fallbackIconSize={60}
             />
             <TouchableOpacity style={styles.photoButton} onPress={pickProfilePhoto} activeOpacity={0.8}>
+              <Ionicons name="camera-outline" size={16} color={Colors.accent} />
               <Text style={styles.photoButtonText}>
                 {profilePhotoUri || userProfile?.fotoPerfilUrl ? 'Cambiar foto de perfil' : 'Agregar foto de perfil (opcional)'}
               </Text>
@@ -208,13 +216,17 @@ export function ProfileScreen(): React.JSX.Element {
             {submitting ? (
               <LoadingIndicator color={Colors.white} size="small" />
             ) : (
-              <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+              <>
+                <Ionicons name="checkmark-outline" size={20} color={Colors.white} />
+                <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+              </>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+            <Ionicons name="log-out-outline" size={20} color={Colors.error} />
             <Text style={styles.signOutButtonText}>Cerrar Sesión</Text>
           </TouchableOpacity>
         </View>
@@ -260,6 +272,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   photoButtonText: {
     fontSize: FontSize.sm,
@@ -271,6 +286,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: 8,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: Spacing.md,
   },
   saveButtonText: {
@@ -283,6 +301,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: 8,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
     borderWidth: 1,
     borderColor: Colors.error,
   },

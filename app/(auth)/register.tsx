@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
@@ -91,6 +92,7 @@ export default function RegisterScreen(): React.JSX.Element {
           <View style={styles.photoSection}>
             <ProfileAvatar uri={profilePhotoUri} size={110} fallbackIconSize={56} />
             <TouchableOpacity style={styles.photoButton} onPress={pickProfilePhoto} activeOpacity={0.8}>
+              <Ionicons name="camera-outline" size={16} color={Colors.accent} />
               <Text style={styles.photoButtonText}>
                 {profilePhotoUri ? 'Cambiar foto de perfil' : 'Agregar foto de perfil (opcional)'}
               </Text>
@@ -153,7 +155,10 @@ export default function RegisterScreen(): React.JSX.Element {
             {submitting ? (
               <LoadingIndicator size="small" />
             ) : (
-              <Text style={styles.buttonText}>Registrarme</Text>
+              <>
+                <Ionicons name="person-add-outline" size={20} color={Colors.white} />
+                <Text style={styles.buttonText}>Registrarme</Text>
+              </>
             )}
           </TouchableOpacity>
 
@@ -161,6 +166,7 @@ export default function RegisterScreen(): React.JSX.Element {
             style={styles.linkButton}
             onPress={() => router.back()}
           >
+            <Ionicons name="log-in-outline" size={15} color={Colors.accent} />
             <Text style={styles.linkText}>
               Ya tienes cuenta? <Text style={styles.linkAccent}>Inicia sesion</Text>
             </Text>
@@ -210,6 +216,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.accent,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   photoButtonText: {
     fontSize: FontSize.sm,
@@ -227,6 +236,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     borderRadius: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: Spacing.sm,
   },
   buttonText: {
@@ -236,6 +248,9 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
     marginTop: Spacing.xl,
   },
   linkText: {

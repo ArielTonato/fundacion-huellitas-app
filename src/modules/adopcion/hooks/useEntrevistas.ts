@@ -19,6 +19,7 @@ interface UseEntrevistasResult {
   entrevistas: Entrevista[];
   loading: boolean;
   error: Error | null;
+  refresh: () => void;
 }
 
 function buildEntrevistaConstraints(options: UseEntrevistasOptions): WhereConstraint[] {
@@ -32,6 +33,7 @@ export function useEntrevistas(options: UseEntrevistasOptions = {}): UseEntrevis
   const [entrevistas, setEntrevistas] = useState<Entrevista[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const { solicitudId, estado } = options;
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export function useEntrevistas(options: UseEntrevistasOptions = {}): UseEntrevis
         setLoading(false);
       }
     );
-  }, [solicitudId, estado]);
+  }, [solicitudId, estado, refreshKey]);
 
-  return { entrevistas, loading, error };
+  return { entrevistas, loading, error, refresh: () => setRefreshKey((current) => current + 1) };
 }

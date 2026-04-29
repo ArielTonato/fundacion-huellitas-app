@@ -59,6 +59,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           'Permitir a Huellitas acceder a tu galeria para seleccionar fotos.',
       },
     ],
+    [
+      'expo-media-library',
+      {
+        photosPermission:
+          'Permitir a Huellitas guardar imagenes generadas en tu galeria.',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

@@ -184,6 +184,11 @@ export async function updateUserProfile(uid: string, data: Partial<User>): Promi
     throw new Error('No se pudo actualizar el perfil porque el usuario no existe.');
   }
 
+  // Send verification email to new address — Auth email changes only after user clicks the link
+  if (updateData.email && auth.currentUser && updateData.email !== auth.currentUser.email) {
+    await auth.currentUser.verifyBeforeUpdateEmail(updateData.email);
+  }
+
   const currentUserData = currentUserDoc.data() as User;
   const currentPhone = currentUserData.telefono ? normalizePhoneNumber(currentUserData.telefono) : '';
 
@@ -207,11 +212,6 @@ export async function updateUserProfile(uid: string, data: Partial<User>): Promi
     await batch.commit();
   } else {
     await setDoc(userRef, updateData, { merge: true });
-  }
-
-  // Update Auth Email if provided
-  if (updateData.email && auth.currentUser && updateData.email !== auth.currentUser?.email) {
-    await auth.currentUser?.updateEmail(updateData.email);
   }
 }
 

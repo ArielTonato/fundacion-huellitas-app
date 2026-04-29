@@ -68,9 +68,8 @@ service cloud.firestore {
 
     match /generaciones/{docId} {
       allow read: if isAuthenticated() &&
-        resource.data.uid == request.auth.uid;
-      allow write: if isAuthenticated() &&
-        request.resource.data.uid == request.auth.uid;
+        (docId.matches(request.auth.uid + '_.*') || resource.data.uid == request.auth.uid);
+      allow write: if false;
     }
   }
 }

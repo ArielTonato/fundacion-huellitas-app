@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Ionicons } from '@expo/vector-icons';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { useAuth } from '@src/shared/hooks/useAuth';
@@ -106,7 +107,10 @@ export default function LoginScreen(): React.JSX.Element {
             {submitting ? (
               <LoadingIndicator size="small" />
             ) : (
-              <Text style={styles.buttonText}>Ingresar</Text>
+              <>
+                <Ionicons name="log-in-outline" size={20} color={Colors.white} />
+                <Text style={styles.buttonText}>Ingresar</Text>
+              </>
             )}
           </TouchableOpacity>
 
@@ -114,6 +118,7 @@ export default function LoginScreen(): React.JSX.Element {
             style={styles.linkButton}
             onPress={() => router.push('/(auth)/register' as never)}
           >
+            <Ionicons name="person-add-outline" size={15} color={Colors.accent} />
             <Text style={styles.linkText}>
               No tienes cuenta? <Text style={styles.linkAccent}>Registrate</Text>
             </Text>
@@ -175,6 +180,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
     borderRadius: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
     marginTop: Spacing.sm,
   },
   buttonText: {
@@ -184,6 +192,9 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
     marginTop: Spacing.xl,
   },
   linkText: {
