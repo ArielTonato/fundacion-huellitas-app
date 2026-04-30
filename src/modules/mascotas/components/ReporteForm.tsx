@@ -6,7 +6,6 @@ import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
 import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
 import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
@@ -17,8 +16,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import MapView, { Marker, type MapPressEvent } from 'react-native-maps';
 import { reporteSchema, type ReporteFormData } from '../schemas/reporteSchema';
+import { LocationPicker } from './LocationPicker';
 
 interface SelectOption<T extends string> {
   label: string;
@@ -32,8 +31,8 @@ interface ReporteFormProps {
 
 const MAX_PHOTOS = 3;
 const DEFAULT_LOCATION = {
-  latitude: -1.362023,
-  longitude: -78.66621,
+  latitude: 0,
+  longitude: 0,
   direccion: '',
 };
 const DEFAULT_VALUES: ReporteFormData = {
@@ -90,19 +89,6 @@ function SelectGroup<T extends string>({
   );
 }
 
-function formatAddress(addresses: Location.LocationGeocodedAddress[]): string {
-  const address = addresses[0];
-  if (!address) return 'Ubicacion seleccionada en el mapa';
-
-  return [
-    address.street,
-    address.name,
-    address.district,
-    address.city,
-    address.region,
-  ].filter(Boolean).join(', ') || 'Ubicacion seleccionada en el mapa';
-}
-
 export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.JSX.Element {
   const {
     control,
@@ -115,7 +101,6 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
     defaultValues: DEFAULT_VALUES,
   });
   const photos = watch('fotos');
-  const location = watch('ultimaUbicacion');
 
   const pickPhotos = async (): Promise<void> => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -148,35 +133,10 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
     setValue('fotos', photos.filter((photo) => photo !== photoUri), { shouldValidate: true });
   };
 
-  const setCurrentLocation = async (): Promise<void> => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permiso requerido', 'Necesitas permitir el acceso a la ubicacion.');
-      return;
-    }
-
-    const currentLocation = await Location.getCurrentPositionAsync({});
-    const coordinate = currentLocation.coords;
-    const addresses = await Location.reverseGeocodeAsync({
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-    });
-
-    setValue('ultimaUbicacion', {
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-      direccion: formatAddress(addresses),
-    }, { shouldValidate: true });
-  };
-
-  const selectLocation = (event: MapPressEvent): void => {
-    const coordinate = event.nativeEvent.coordinate;
-    setValue('ultimaUbicacion', {
-      latitude: coordinate.latitude,
-      longitude: coordinate.longitude,
-      direccion: `${coordinate.latitude.toFixed(6)}, ${coordinate.longitude.toFixed(6)}`,
-    }, { shouldValidate: true });
-  };
+  const ubicacionError =
+    errors.ultimaUbicacion?.direccion?.message ??
+    errors.ultimaUbicacion?.latitude?.message ??
+    errors.ultimaUbicacion?.longitude?.message;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -233,34 +193,27 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
 
       <SectionTitle icon="location-outline" title="ULTIMA UBICACION" />
       <View style={styles.card}>
-        <TouchableOpacity style={styles.locationButton} activeOpacity={0.84} onPress={setCurrentLocation}>
-          <Ionicons name="locate" size={20} color={Colors.white} />
-          <Text style={styles.locationButtonText}>Usar mi ubicacion actual</Text>
-        </TouchableOpacity>
-        <Text style={styles.helpText}>Tambien puedes tocar el mapa para mover el pin.</Text>
-        <MapView
-          key={`${location.latitude}-${location.longitude}`}
-          style={styles.map}
-          onPress={selectLocation}
-          initialRegion={{
-            latitude: location.latitude,
-            longitude: location.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          <Marker coordinate={{ latitude: location.latitude, longitude: location.longitude }} />
-        </MapView>
-        <FormField
+        <Text style={styles.helpText}>
+          Buscá la dirección o arrastrá el mapa para colocar el pin exactamente sobre el lugar.
+        </Text>
+        <Controller
           control={control}
-          name="ultimaUbicacion.direccion"
-          label="Direccion o referencia"
-          placeholder="Ej. Parque central, cerca de la panaderia"
-          errorMessage={errors.ultimaUbicacion?.direccion?.message}
+          name="ultimaUbicacion"
+          render={({ field: { value, onChange } }) => (
+            <LocationPicker
+              value={value}
+              onChange={(next) =>
+                onChange({
+                  latitude: next.latitude,
+                  longitude: next.longitude,
+                  direccion: next.direccion,
+                  placeId: next.placeId,
+                })
+              }
+              error={ubicacionError}
+            />
+          )}
         />
-        {errors.ultimaUbicacion?.latitude?.message ? (
-          <Text style={styles.inlineError}>{errors.ultimaUbicacion.latitude.message}</Text>
-        ) : null}
       </View>
 
       <TouchableOpacity
@@ -386,32 +339,10 @@ const styles = StyleSheet.create({
     fontSize: FontSize.xs,
     marginTop: Spacing.xs,
   },
-  locationButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 14,
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
-    padding: Spacing.md,
-  },
-  locationButtonText: {
-    color: Colors.white,
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-  },
   helpText: {
     color: Colors.textSecondary,
     fontSize: FontSize.xs,
     marginBottom: Spacing.md,
-  },
-  map: {
-    borderRadius: 16,
-    height: 220,
-    marginBottom: Spacing.lg,
-    overflow: 'hidden',
-    width: '100%',
   },
   submitButton: {
     alignItems: 'center',

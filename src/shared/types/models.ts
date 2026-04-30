@@ -92,6 +92,7 @@ export interface Reporte {
     latitude: number;
     longitude: number;
     direccion: string;
+    placeId?: string;
   };
   telefonoContacto: string;
   reportadoPor: string;

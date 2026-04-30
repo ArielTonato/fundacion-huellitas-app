@@ -9,6 +9,7 @@ export const reporteSchema = yup.object({
     latitude: yup.number().required('Seleccione una ubicacion'),
     longitude: yup.number().required('Seleccione una ubicacion'),
     direccion: yup.string().required('La direccion es requerida'),
+    placeId: yup.string().optional(),
   }).required(),
   telefonoContacto: yup.string().matches(/^[0-9]{10}$/, 'Ingrese un telefono de 10 digitos').required('El telefono es requerido'),
 });

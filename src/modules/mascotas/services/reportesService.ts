@@ -60,12 +60,21 @@ export async function crearReporte(data: ReporteFormData, reportadoPor: string):
       uploadedBy: reportadoPor,
     },
   });
+  const ultimaUbicacion: Reporte['ultimaUbicacion'] = {
+    latitude: data.ultimaUbicacion.latitude,
+    longitude: data.ultimaUbicacion.longitude,
+    direccion: data.ultimaUbicacion.direccion,
+  };
+  if (data.ultimaUbicacion.placeId) {
+    ultimaUbicacion.placeId = data.ultimaUbicacion.placeId;
+  }
+
   const reporteData: ReporteFirestoreData = {
     nombre: data.nombre,
     especie: data.especie,
     descripcion: data.descripcion,
     fotos,
-    ultimaUbicacion: data.ultimaUbicacion,
+    ultimaUbicacion,
     telefonoContacto: data.telefonoContacto,
     reportadoPor,
     estado: 'activo',

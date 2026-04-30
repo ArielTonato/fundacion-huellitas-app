@@ -71,4 +71,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     typedRoutes: true,
     reactCompiler: true,
   },
+  extra: {
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+    cloudFunctionsUrl: process.env.CLOUD_FUNCTIONS_URL,
+  },
 });
