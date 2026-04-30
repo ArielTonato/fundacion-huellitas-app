@@ -66,7 +66,7 @@ export default function AdoptanteLayout(): React.JSX.Element {
           }}
         />
         <Tabs.Screen
-          name="reportes/index"
+          name="reportes"
           options={{
             title: 'Reportes',
             tabBarIcon: ({ color, size }) => (
@@ -96,18 +96,6 @@ export default function AdoptanteLayout(): React.JSX.Element {
         />
         <Tabs.Screen
           name="solicitud/[animalId]"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="reportes/reportar"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="reportes/mapa"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="reportes/[id]"
           options={{ href: null }}
         />
       </Tabs>

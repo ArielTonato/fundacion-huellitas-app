@@ -1,5 +1,6 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged as firebaseOnAuthStateChanged,
   signOut as firebaseSignOut,
   getAuth,
@@ -148,7 +149,7 @@ export async function signUp(
   } catch (error) {
     if (auth.currentUser) {
       try {
-        await auth.currentUser.delete();
+        await deleteUser(auth.currentUser);
       } catch {
         await firebaseSignOut(auth);
       }
