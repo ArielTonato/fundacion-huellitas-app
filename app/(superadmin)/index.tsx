@@ -1,15 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@src/theme/colors';
+import { GestionUsuariosScreen } from '@src/modules/superadmin/screens/GestionUsuariosScreen';
 
-export default function GestionUsuariosScreen(): React.JSX.Element {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Gestion de Usuarios</Text>
-    </View>
-  );
+export default function SuperAdminUsuarios(): React.JSX.Element {
+  return <GestionUsuariosScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
-  text: { fontSize: 18, color: Colors.textPrimary },
-});

@@ -24,6 +24,7 @@ export interface User {
   email: string;
   nombre: string;
   role: Role;
+  activo?: boolean;
   telefono?: string;
   fotoPerfilUrl?: string;
   direccion?: string;

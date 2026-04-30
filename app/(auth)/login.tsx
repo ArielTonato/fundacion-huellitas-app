@@ -23,6 +23,9 @@ function getSignInErrorMessage(error: unknown): string {
     if (authError.code === 'auth/wrong-password' || authError.code === 'auth/invalid-credential') {
       return 'La contraseña es incorrecta o el correo electronico es invalido.';
     }
+    if (authError.code === 'auth/user-disabled') {
+      return 'Esta cuenta esta desactivada. Contacta al superadmin para reactivarla.';
+    }
     if (authError.code === 'auth/user-not-found' || authError.code === 'auth/invalid-email') {
       return 'No existe una cuenta con ese correo electronico.';
     }

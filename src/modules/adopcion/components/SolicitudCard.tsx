@@ -72,29 +72,36 @@ export function SolicitudCard({ entrevista, solicitud }: SolicitudCardProps): Re
       <View style={styles.divider} />
 
       <View style={styles.row}>
-        <Text style={styles.label}>Solicitante</Text>
+        <Text style={styles.label}>Solicitante: </Text>
         <Text style={styles.value}>{solicitud.nombreCompleto}</Text>
       </View>
       <View style={styles.row}>
-        <Text style={styles.label}>Fecha</Text>
+        <Text style={styles.label}>Fecha: </Text>
         <Text style={styles.value}>{formatCreatedAt(solicitud)}</Text>
       </View>
       <View style={styles.row}>
-        <Text style={styles.label}>Contacto</Text>
+        <Text style={styles.label}>Contacto: </Text>
         <Text style={styles.value}>{solicitud.telefonoCelular || solicitud.telefonoFijo || 'Sin teléfono'}</Text>
       </View>
       {solicitud.estado === 'entrevista_agendada' && entrevista ? (
         <View style={styles.interviewBox}>
           <Text style={styles.interviewTitle}>Entrevista agendada</Text>
           <View style={styles.row}>
-            <Text style={styles.label}>Fecha</Text>
+            <Text style={styles.label}>Fecha: </Text>
             <Text style={styles.value}>{formatInterviewDate(entrevista)}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Hora</Text>
+            <Text style={styles.label}>Hora: </Text>
             <Text style={styles.value}>{entrevista.hora}</Text>
           </View>
-          {entrevista.notas ? <Text style={styles.interviewNotes}>{entrevista.notas}</Text> : null}
+          {entrevista.notas &&
+            <>
+              <View style={styles.row}>
+                <Text style={styles.label}>Notas: </Text>
+                <Text style={styles.value}>{entrevista.notas}</Text>
+              </View>
+            </>
+          }
         </View>
       ) : null}
     </View>
@@ -178,6 +185,5 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontSize: FontSize.sm,
     lineHeight: 20,
-    marginTop: Spacing.sm,
   },
 });

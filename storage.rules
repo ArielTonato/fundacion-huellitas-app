@@ -9,12 +9,17 @@ service firebase.storage {
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role;
     }
 
+    function isActiveAuthenticated() {
+      return isAuthenticated() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.activo != false;
+    }
+
     function isPersonal() {
-      return isAuthenticated() && getRole() == 'personal';
+      return isActiveAuthenticated() && getRole() == 'personal';
     }
 
     function isSuperadmin() {
-      return isAuthenticated() && getRole() == 'superadmin';
+      return isActiveAuthenticated() && getRole() == 'superadmin';
     }
 
     match /animales/{animalId}/{imageId} {
@@ -36,7 +41,7 @@ service firebase.storage {
 
     match /perfil/{userId}/{imageId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
-      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isSuperadmin());
     }
   }
 }

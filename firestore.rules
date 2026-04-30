@@ -9,8 +9,37 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isActiveAuthenticated() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activo != false;
+    }
+
     function isSuperadmin() {
-      return isAuthenticated() && getRole() == 'superadmin';
+      return isActiveAuthenticated() && getRole() == 'superadmin';
+    }
+
+    function isPersonal() {
+      return isActiveAuthenticated() && getRole() == 'personal';
+    }
+
+    function isAdoptante() {
+      return isActiveAuthenticated() && getRole() == 'adoptante';
+    }
+
+    function isAllowedOwnUserUpdate(userId) {
+      return isActiveAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.activo == resource.data.activo &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nombre',
+          'email',
+          'telefono',
+          'fotoPerfilUrl',
+          'direccion',
+          'fcmToken'
+        ]);
     }
 
     match /users/{userId} {
@@ -23,12 +52,7 @@ service cloud.firestore {
         request.resource.data.role == 'adoptante'
       ) || isSuperadmin();
 
-      allow update: if isSuperadmin() || (
-        isAuthenticated() &&
-        request.auth.uid == userId &&
-        request.resource.data.uid == resource.data.uid &&
-        request.resource.data.role == resource.data.role
-      );
+      allow update: if isSuperadmin() || isAllowedOwnUserUpdate(userId);
     }
 
     match /userPhones/{phone} {
@@ -44,18 +68,18 @@ service cloud.firestore {
 
     match /animales/{animalId} {
       allow read: if isAuthenticated();
-      allow create, update, delete: if getRole() == 'personal';
+      allow create, update, delete: if isPersonal();
     }
 
     match /solicitudes/{solicitudId} {
       allow read: if isAuthenticated() &&
-        (resource.data.adoptanteId == request.auth.uid || getRole() == 'personal');
-      allow create: if getRole() == 'adoptante';
-      allow update: if getRole() == 'personal';
+        (resource.data.adoptanteId == request.auth.uid || isPersonal());
+      allow create: if isAdoptante();
+      allow update: if isPersonal();
     }
 
     match /entrevistas/{entrevistaId} {
-      allow read, write: if getRole() == 'personal';
+      allow read, write: if isPersonal();
     }
 
     match /reportes/{reporteId} {

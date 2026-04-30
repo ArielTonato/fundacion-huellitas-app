@@ -12,18 +12,19 @@ interface RoleGuardProps {
 export function RoleGuard({ allowedRoles, children }: RoleGuardProps): React.JSX.Element | null {
   const { userProfile, loading } = useAuth();
   const router = useRouter();
+  const hasAccess = Boolean(userProfile && userProfile.activo !== false && allowedRoles.includes(userProfile.role));
 
   useEffect(() => {
-    if (!loading && (!userProfile || !allowedRoles.includes(userProfile.role))) {
+    if (!loading && !hasAccess) {
       router.replace('/(auth)/login' as never);
     }
-  }, [userProfile, loading, allowedRoles, router]);
+  }, [hasAccess, loading, router]);
 
   if (loading) {
     return <LoadingIndicator fullScreen />;
   }
 
-  if (!userProfile || !allowedRoles.includes(userProfile.role)) {
+  if (!hasAccess) {
     return null;
   }
 

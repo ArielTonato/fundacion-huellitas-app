@@ -7,8 +7,8 @@ import { FontSize } from '@src/theme/typography';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -93,12 +93,10 @@ export function PlacesSearchInput({
           ) : predictions.length === 0 && !loading ? (
             <Text style={styles.emptyText}>Sin resultados.</Text>
           ) : (
-            <FlatList
-              data={predictions}
-              keyExtractor={(item) => item.placeId}
-              keyboardShouldPersistTaps="always"
-              renderItem={({ item }) => (
+            <ScrollView keyboardShouldPersistTaps="always">
+              {predictions.map((item) => (
                 <Pressable
+                  key={item.placeId}
                   style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
                   onPress={() => handleSelect(item)}
                 >
@@ -114,8 +112,8 @@ export function PlacesSearchInput({
                     ) : null}
                   </View>
                 </Pressable>
-              )}
-            />
+              ))}
+            </ScrollView>
           )}
         </View>
       )}

@@ -3,15 +3,16 @@ import { AuthProvider, useAuth } from '@src/shared/hooks/useAuth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav(): React.JSX.Element {
-  const { authUser, userProfile, loading } = useAuth();
+  const { authUser, userProfile, loading, signOut } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const inactiveSignOutStarted = useRef<boolean>(false);
 
   useEffect(() => {
     if (loading) return;
@@ -29,6 +30,19 @@ function RootLayoutNav(): React.JSX.Element {
 
     if (!userProfile) return;
 
+    if (userProfile.activo === false) {
+      if (!inactiveSignOutStarted.current) {
+        inactiveSignOutStarted.current = true;
+        signOut().catch(() => undefined);
+      }
+      if (firstSegment !== '(auth)') {
+        router.replace('/(auth)/login' as never);
+      }
+      return;
+    }
+
+    inactiveSignOutStarted.current = false;
+
     const role = userProfile.role;
 
     if (role === 'adoptante' && firstSegment !== '(adoptante)') {
@@ -38,7 +52,7 @@ function RootLayoutNav(): React.JSX.Element {
     } else if (role === 'superadmin' && firstSegment !== '(superadmin)') {
       router.replace('/(superadmin)/' as never);
     }
-  }, [authUser, userProfile, loading, segments]);
+  }, [authUser, userProfile, loading, segments, signOut, router]);
 
   if (loading) {
     return <LoadingIndicator fullScreen />;

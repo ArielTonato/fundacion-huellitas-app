@@ -225,7 +225,10 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
         {submitting ? (
           <LoadingIndicator color={Colors.white} size="small" />
         ) : (
-          <Text style={styles.submitButtonText}>Publicar reporte</Text>
+          <>
+            <Ionicons name="megaphone-outline" size={20} color={Colors.white} />
+            <Text style={styles.submitButtonText}>Publicar reporte</Text>
+          </>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -348,6 +351,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 14,
+    flexDirection: 'row',
+    gap: 8,
     justifyContent: 'center',
     minHeight: 56,
     paddingVertical: Spacing.lg,
