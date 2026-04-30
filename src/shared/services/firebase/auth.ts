@@ -30,6 +30,7 @@ type UserCreationData = {
   email: string;
   nombre: string;
   role: Role;
+  activo: boolean;
   creadoEn: unknown;
   telefono?: string;
   fotoPerfilUrl?: string;
@@ -124,6 +125,7 @@ export async function signUp(
       email,
       nombre,
       role: 'adoptante' as Role,
+      activo: true,
       creadoEn: serverTimestamp(),
     };
 

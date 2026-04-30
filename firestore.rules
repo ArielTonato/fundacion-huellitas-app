@@ -11,7 +11,7 @@ service cloud.firestore {
 
     function isActiveAuthenticated() {
       return isAuthenticated() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.activo != false;
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('activo', true) != false;
     }
 
     function isSuperadmin() {
@@ -31,7 +31,7 @@ service cloud.firestore {
         request.auth.uid == userId &&
         request.resource.data.uid == resource.data.uid &&
         request.resource.data.role == resource.data.role &&
-        request.resource.data.activo == resource.data.activo &&
+        request.resource.data.get('activo', true) == resource.data.get('activo', true) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'nombre',
           'email',

@@ -31,7 +31,13 @@ import {
   type PersonalEditFormData,
   type PersonalFormData,
 } from '../schemas/personalSchema';
-import { crearPersonal, desactivarPersonal, editarPersonal, reactivarPersonal } from '../services/personalService';
+import {
+  crearPersonal,
+  desactivarPersonal,
+  editarPersonal,
+  enviarNotificacionPrueba,
+  reactivarPersonal,
+} from '../services/personalService';
 
 const DEFAULT_FORM_VALUES: PersonalFormData = {
   nombre: '',
@@ -166,6 +172,7 @@ export function GestionUsuariosScreen(): React.JSX.Element {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [profilePhotoUri, setProfilePhotoUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [testNotificationLoading, setTestNotificationLoading] = useState<boolean>(false);
   const [actionLoadingUid, setActionLoadingUid] = useState<string | null>(null);
   const {
     control,
@@ -295,6 +302,18 @@ export function GestionUsuariosScreen(): React.JSX.Element {
       Alert.alert('Error', getErrorMessage(statusError, 'No se pudo actualizar el estado del usuario.'));
     } finally {
       setActionLoadingUid(null);
+    }
+  };
+
+  const sendTestNotification = async (): Promise<void> => {
+    try {
+      setTestNotificationLoading(true);
+      await enviarNotificacionPrueba();
+      Alert.alert('Notificacion enviada', 'Revisa la bandeja de notificaciones del dispositivo.');
+    } catch (notificationError) {
+      Alert.alert('Error', getErrorMessage(notificationError, 'No se pudo enviar la notificacion de prueba.'));
+    } finally {
+      setTestNotificationLoading(false);
     }
   };
 
@@ -456,6 +475,21 @@ export function GestionUsuariosScreen(): React.JSX.Element {
             <Text style={styles.eyebrow}>Panel superadmin</Text>
             <Text style={styles.title}>Gestion de usuarios</Text>
             <Text style={styles.subtitle}>Crea, desactiva o reactiva cuentas del personal.</Text>
+            <TouchableOpacity
+              style={styles.testNotificationButton}
+              activeOpacity={0.82}
+              disabled={testNotificationLoading}
+              onPress={() => {
+                void sendTestNotification();
+              }}
+            >
+              {testNotificationLoading ? (
+                <LoadingIndicator size="small" color={Colors.accent} />
+              ) : (
+                <Ionicons name="notifications-outline" size={18} color={Colors.accent} />
+              )}
+              <Text style={styles.testNotificationText}>Enviar prueba de notificacion</Text>
+            </TouchableOpacity>
 
             <View style={styles.searchBox}>
               <Ionicons name="search" size={18} color={Colors.textSecondary} />
@@ -521,6 +555,24 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: FontSize.md,
     marginBottom: Spacing.lg,
+  },
+  testNotificationButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: `${Colors.accent}12`,
+    borderColor: Colors.accent,
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  testNotificationText: {
+    color: Colors.accent,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
   },
   searchBox: {
     alignItems: 'center',

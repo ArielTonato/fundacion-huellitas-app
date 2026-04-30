@@ -29,6 +29,11 @@ interface PersonalStatusResponse {
   success: boolean;
 }
 
+interface TestNotificationResponse {
+  success: boolean;
+  messageId: string;
+}
+
 function buildCrearPersonalRequest(data: PersonalFormData): CrearPersonalRequest {
   const telefono = data.telefono?.trim();
 
@@ -98,4 +103,12 @@ export async function reactivarPersonal(uid: string): Promise<void> {
     'reactivarPersonal'
   );
   await callable({ uid });
+}
+
+export async function enviarNotificacionPrueba(): Promise<void> {
+  const callable = httpsCallable<Record<string, never>, TestNotificationResponse>(
+    getFunctions(),
+    'enviarNotificacionPrueba'
+  );
+  await callable({});
 }

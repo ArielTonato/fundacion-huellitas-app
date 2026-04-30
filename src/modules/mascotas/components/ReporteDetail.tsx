@@ -172,7 +172,10 @@ export function ReporteDetail({
             {resolving ? (
               <LoadingIndicator color={Colors.white} size="small" />
             ) : (
-              <Text style={styles.bottomButtonText}>Mascota encontrada</Text>
+              <>
+                <Ionicons name="paw" size={18} color={Colors.white} />
+                <Text style={styles.bottomButtonText}>Mascota encontrada</Text>
+              </>
             )}
           </TouchableOpacity>
         ) : null}
@@ -304,6 +307,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 14,
+    flexDirection: 'row',
+    gap: Spacing.sm,
     justifyContent: 'center',
     minHeight: 52,
     paddingVertical: Spacing.lg,
