@@ -1,5 +1,5 @@
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Ionicons } from '@expo/vector-icons';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { FormField } from '@src/shared/components/FormField';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { ProfileAvatar } from '@src/shared/components/ProfileAvatar';
@@ -43,7 +43,7 @@ type ProfileFormInput = {
 type ProfileFormData = yup.InferType<typeof profileSchema>;
 
 export function ProfileScreen(): React.JSX.Element {
-  const { authUser, userProfile, signOut, updateProfile, updateUserPassword } = useAuth();
+  const { authUser, userProfile, signOut, updateProfile, updateUserPassword, deleteAccount } = useAuth();
   const [profilePhotoUri, setProfilePhotoUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -152,6 +152,42 @@ export function ProfileScreen(): React.JSX.Element {
     ]);
   };
 
+  const handleDeleteAccount = (): void => {
+    Alert.alert(
+      'Eliminar cuenta',
+      'Esta acción es permanente. Se eliminarán tu cuenta y todas tus solicitudes de adopción.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sí, eliminar',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              '¿Estás completamente seguro?',
+              'No podrás recuperar tu cuenta ni ningún dato asociado.',
+              [
+                { text: 'No, conservar cuenta', style: 'cancel' },
+                {
+                  text: 'Eliminar permanentemente',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setSubmitting(true);
+                    try {
+                      await deleteAccount();
+                    } catch (error) {
+                      setSubmitting(false);
+                      Alert.alert('Error', error instanceof Error ? error.message : 'No se pudo eliminar la cuenta. Inténtalo más tarde.');
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -230,6 +266,23 @@ export function ProfileScreen(): React.JSX.Element {
             <Text style={styles.signOutButtonText}>Cerrar Sesión</Text>
           </TouchableOpacity>
         </View>
+
+        {userProfile?.role === 'adoptante' ? (
+          <View style={styles.section}>
+            <Text style={styles.dangerZoneTitle}>Zona de peligro</Text>
+            <Text style={styles.dangerZoneSubtitle}>
+              Al eliminar tu cuenta se borrarán permanentemente tus datos y solicitudes.
+            </Text>
+            <TouchableOpacity
+              style={[styles.deleteAccountButton, submitting ? styles.deleteAccountButtonDisabled : null]}
+              onPress={handleDeleteAccount}
+              disabled={submitting}
+            >
+              <Ionicons name="trash-outline" size={20} color={Colors.error} />
+              <Text style={styles.deleteAccountButtonText}>Eliminar mi cuenta</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -308,6 +361,37 @@ const styles = StyleSheet.create({
     borderColor: Colors.error,
   },
   signOutButtonText: {
+    color: Colors.error,
+    fontSize: FontSize.md,
+    fontWeight: '600',
+  },
+  dangerZoneTitle: {
+    fontSize: FontSize.md,
+    fontWeight: '700',
+    color: Colors.error,
+    marginBottom: Spacing.sm,
+  },
+  dangerZoneSubtitle: {
+    fontSize: FontSize.sm,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.lg,
+  },
+  deleteAccountButton: {
+    backgroundColor: 'transparent',
+    paddingVertical: Spacing.md,
+    borderRadius: 8,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  deleteAccountButtonDisabled: {
+    opacity: 0.5,
+  },
+  deleteAccountButtonText: {
     color: Colors.error,
     fontSize: FontSize.md,
     fontWeight: '600',

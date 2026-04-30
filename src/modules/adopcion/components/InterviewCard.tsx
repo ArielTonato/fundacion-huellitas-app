@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBadge } from '@src/shared/components/StatusBadge';
 import type { Entrevista, EstadoEntrevista } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
@@ -8,6 +9,8 @@ import { Spacing } from '@src/theme/spacing';
 interface InterviewCardProps {
   entrevista: Entrevista;
   viveAcompanado?: boolean;
+  onCancel?: () => void;
+  onComplete?: () => void;
 }
 
 const STATUS_LABELS: Record<EstadoEntrevista, string> = {
@@ -30,7 +33,12 @@ function formatFecha(entrevista: Entrevista): string {
   });
 }
 
-export function InterviewCard({ entrevista, viveAcompanado = false }: InterviewCardProps): React.JSX.Element {
+export function InterviewCard({
+  entrevista,
+  viveAcompanado = false,
+  onCancel,
+  onComplete,
+}: InterviewCardProps): React.JSX.Element {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -49,6 +57,18 @@ export function InterviewCard({ entrevista, viveAcompanado = false }: InterviewC
         </View>
       ) : null}
       {entrevista.resultado ? <Text style={styles.result}>Resultado: {entrevista.resultado}</Text> : null}
+      {entrevista.estado === 'programada' && onComplete && onCancel ? (
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.successSmallButton} activeOpacity={0.86} onPress={onComplete}>
+            <Ionicons name="checkmark-circle-outline" size={16} color={Colors.white} />
+            <Text style={styles.smallButtonText}>Completar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dangerSmallButton} activeOpacity={0.86} onPress={onCancel}>
+            <Ionicons name="close-circle-outline" size={16} color={Colors.white} />
+            <Text style={styles.smallButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -99,5 +119,35 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '700',
     marginTop: Spacing.md,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  successSmallButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.secondary,
+    borderRadius: 12,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    padding: Spacing.md,
+  },
+  dangerSmallButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.error,
+    borderRadius: 12,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    padding: Spacing.md,
+  },
+  smallButtonText: {
+    color: Colors.white,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
   },
 });

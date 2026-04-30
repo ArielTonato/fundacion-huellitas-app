@@ -14,6 +14,7 @@ import {
   setDoc,
   writeBatch,
 } from '@react-native-firebase/firestore';
+import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
 import type { Role, User } from '@src/shared/types/models';
 import { uploadProfileImage } from './storage';
 
@@ -232,4 +233,12 @@ export async function getIdToken(): Promise<string> {
     throw new Error('Usuario no autenticado.');
   }
   return user.getIdToken();
+}
+
+export async function deleteAccount(): Promise<void> {
+  const callable = httpsCallable<Record<string, never>, { success: boolean }>(
+    getFunctions(),
+    'eliminarCuenta'
+  );
+  await callable({});
 }

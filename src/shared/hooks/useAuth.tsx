@@ -5,6 +5,7 @@ import {
   getUserProfile,
   onAuthStateChanged,
   type AuthUser,
+  deleteAccount as firebaseDeleteAccount,
 } from '@src/shared/services/firebase/auth';
 import type { User } from '@src/shared/types/models';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
@@ -24,6 +25,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
   updateUserPassword: (password: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -94,6 +96,11 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
     await updatePassword(password);
   }, []);
 
+  const deleteAccount = useCallback(async (): Promise<void> => {
+    await firebaseDeleteAccount();
+    setUserProfile(null);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -105,6 +112,7 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
         signOut,
         updateProfile,
         updateUserPassword,
+        deleteAccount,
       }}
     >
       {children}
