@@ -7,16 +7,37 @@ import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const SLIDE_DURATION_MS = 300;
+const FADE_DURATION_MS = 180;
 
 export default function ReportarScreen(): React.JSX.Element {
   const router = useRouter();
   const { authUser } = useAuth();
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: FADE_DURATION_MS,
+        useNativeDriver: true,
+      }).start();
+    }, SLIDE_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [backdropOpacity]);
 
   const closeDrawer = (): void => {
-    router.back();
+    Animated.timing(backdropOpacity, {
+      toValue: 0,
+      duration: FADE_DURATION_MS,
+      useNativeDriver: true,
+    }).start(() => {
+      router.back();
+    });
   };
 
   const submitReport = async (data: ReporteFormData): Promise<void> => {
@@ -40,7 +61,12 @@ export default function ReportarScreen(): React.JSX.Element {
 
   return (
     <View style={styles.root}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={closeDrawer} />
+      <Animated.View
+        style={[styles.backdrop, { opacity: backdropOpacity }]}
+        pointerEvents="box-none"
+      >
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={closeDrawer} />
+      </Animated.View>
 
       <View style={styles.sheet} pointerEvents="box-none">
         <View style={styles.handle} />
@@ -84,6 +110,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     height: 4,
     marginBottom: Spacing.md,
+    marginTop: Spacing.lg,
     width: 40,
   },
   sheetHeader: {

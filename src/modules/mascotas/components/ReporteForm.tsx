@@ -194,7 +194,7 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
           control={control}
           name="descripcion"
           label="Descripcion"
-          placeholder="Describe senas particulares, collar, comportamiento..."
+          placeholder="Describe señas particulares, collar, comportamiento..."
           multiline
           numberOfLines={4}
           textAlignVertical="top"

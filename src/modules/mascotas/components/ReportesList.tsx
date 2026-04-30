@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   searchInput: {
     color: Colors.textPrimary,
     flex: 1,
-    fontSize: FontSize.sm,
+    fontSize: FontSize.xs,
     paddingVertical: Spacing.xs,
   },
   actionsRow: {
