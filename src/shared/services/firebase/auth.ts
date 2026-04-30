@@ -40,7 +40,7 @@ type UserPhoneIndex = {
   creadoEn: unknown;
 };
 
-const DUPLICATE_PHONE_ERROR_MESSAGE = 'Ya existe un usuario con ese numero de telefono.';
+const DUPLICATE_PHONE_ERROR_MESSAGE = 'Este numero de telefono ya esta en uso.';
 
 function normalizePhoneNumber(phone: string): string {
   return phone.replace(/\D/g, '');

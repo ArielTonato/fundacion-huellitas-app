@@ -1,12 +1,13 @@
 import { useAnimal } from '@src/modules/adopcion/hooks/useAnimal';
 import { StatusBadge } from '@src/shared/components/StatusBadge';
-import type { EstadoSolicitud, Solicitud } from '@src/shared/types/models';
+import type { Entrevista, EstadoSolicitud, Solicitud } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 interface SolicitudCardProps {
+  entrevista?: Entrevista | null;
   solicitud: Solicitud;
 }
 
@@ -40,7 +41,15 @@ function formatCreatedAt(solicitud: Solicitud): string {
   });
 }
 
-export function SolicitudCard({ solicitud }: SolicitudCardProps): React.JSX.Element {
+function formatInterviewDate(entrevista: Entrevista): string {
+  return entrevista.fecha.toDate().toLocaleDateString('es-EC', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+export function SolicitudCard({ entrevista, solicitud }: SolicitudCardProps): React.JSX.Element {
   const { animal } = useAnimal(solicitud.animalId);
 
   return (
@@ -74,6 +83,20 @@ export function SolicitudCard({ solicitud }: SolicitudCardProps): React.JSX.Elem
         <Text style={styles.label}>Contacto</Text>
         <Text style={styles.value}>{solicitud.telefonoCelular || solicitud.telefonoFijo || 'Sin teléfono'}</Text>
       </View>
+      {solicitud.estado === 'entrevista_agendada' && entrevista ? (
+        <View style={styles.interviewBox}>
+          <Text style={styles.interviewTitle}>Entrevista agendada</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Fecha</Text>
+            <Text style={styles.value}>{formatInterviewDate(entrevista)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Hora</Text>
+            <Text style={styles.value}>{entrevista.hora}</Text>
+          </View>
+          {entrevista.notas ? <Text style={styles.interviewNotes}>{entrevista.notas}</Text> : null}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -138,5 +161,23 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '600',
     textAlign: 'right',
+  },
+  interviewBox: {
+    backgroundColor: `${Colors.secondary}14`,
+    borderRadius: 14,
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+  },
+  interviewTitle: {
+    color: Colors.secondary,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+  },
+  interviewNotes: {
+    color: Colors.textPrimary,
+    fontSize: FontSize.sm,
+    lineHeight: 20,
+    marginTop: Spacing.sm,
   },
 });

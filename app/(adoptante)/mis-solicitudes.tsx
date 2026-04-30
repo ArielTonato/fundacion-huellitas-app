@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { SolicitudCard } from '@src/modules/adopcion/components/SolicitudCard';
+import { useEntrevistas } from '@src/modules/adopcion/hooks/useEntrevistas';
 import { useSolicitudes } from '@src/modules/adopcion/hooks/useSolicitudes';
 import { EmptyState } from '@src/shared/components/EmptyState';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
 import { useAuth } from '@src/shared/hooks/useAuth';
-import type { EstadoSolicitud } from '@src/shared/types/models';
+import type { EstadoSolicitud, Solicitud } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
@@ -67,6 +68,14 @@ function FilterChip({
   );
 }
 
+function SolicitudListItem({ solicitud }: { solicitud: Solicitud }): React.JSX.Element {
+  const { entrevistas } = useEntrevistas({
+    solicitudId: solicitud.estado === 'entrevista_agendada' ? solicitud.id : undefined,
+  });
+
+  return <SolicitudCard solicitud={solicitud} entrevista={entrevistas[0] ?? null} />;
+}
+
 export default function MisSolicitudesScreen(): React.JSX.Element {
   const { authUser } = useAuth();
   const [activeFilter, setActiveFilter] = useState<SolicitudFilter>('todas');
@@ -122,7 +131,7 @@ export default function MisSolicitudesScreen(): React.JSX.Element {
       <FlatList
         data={filteredSolicitudes}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <SolicitudCard solicitud={item} />}
+        renderItem={({ item }) => <SolicitudListItem solicitud={item} />}
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} tintColor={Colors.primary} />}
         ListHeaderComponent={
