@@ -1,15 +1,13 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@src/theme/colors';
+import { ReportesList } from '@src/modules/mascotas/components/ReportesList';
 
 export default function ListaReportesScreen(): React.JSX.Element {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Reportes de Mascotas</Text>
-    </View>
+    <ReportesList
+      title="Mascotas extraviadas"
+      eyebrow="Ayudemos a encontrarlas"
+      detailRoute={(id) => `/(adoptante)/reportes/${id}`}
+      mapRoute="/(adoptante)/reportes/mapa"
+      reportRoute="/(adoptante)/reportes/reportar"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
-  text: { fontSize: 18, color: Colors.textPrimary },
-});

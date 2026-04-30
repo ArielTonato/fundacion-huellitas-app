@@ -7,6 +7,12 @@ import {
   type AuthUser,
   deleteAccount as firebaseDeleteAccount,
 } from '@src/shared/services/firebase/auth';
+import { updateDocument } from '@src/shared/services/firebase/firestore';
+import {
+  onFcmTokenRefresh,
+  registerFcmToken,
+  requestNotificationPermission,
+} from '@src/shared/services/notifications/fcm';
 import type { User } from '@src/shared/types/models';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
@@ -34,24 +40,48 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+async function setupNotifications(uid: string): Promise<(() => void) | undefined> {
+  const hasPermission = await requestNotificationPermission();
+  if (!hasPermission) {
+    return undefined;
+  }
+
+  await registerFcmToken(uid);
+  return onFcmTokenRefresh(uid);
+}
+
 export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let unsubscribeTokenRefresh: (() => void) | undefined;
     const unsubscribe = onAuthStateChanged(async (user) => {
       setAuthUser(user);
       if (user) {
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
+        unsubscribeTokenRefresh?.();
+        setupNotifications(user.uid)
+          .then((unsubscribeRefresh) => {
+            unsubscribeTokenRefresh = unsubscribeRefresh;
+          })
+          .catch((error) => {
+            console.warn('No se pudo registrar el token FCM.', error);
+          });
       } else {
+        unsubscribeTokenRefresh?.();
+        unsubscribeTokenRefresh = undefined;
         setUserProfile(null);
       }
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeTokenRefresh?.();
+      unsubscribe();
+    };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string): Promise<void> => {
@@ -76,9 +106,16 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   );
 
   const signOut = useCallback(async (): Promise<void> => {
+    if (authUser) {
+      try {
+        await updateDocument('users', authUser.uid, { fcmToken: null });
+      } catch (error) {
+        console.warn('No se pudo limpiar el token FCM antes de cerrar sesion.', error);
+      }
+    }
     await firebaseSignOut();
     setUserProfile(null);
-  }, []);
+  }, [authUser]);
 
   const updateProfile = useCallback(
     async (data: Partial<User>): Promise<void> => {

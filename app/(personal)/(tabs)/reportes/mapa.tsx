@@ -1,15 +1,29 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@src/theme/colors';
+import { MapaReportes } from '@src/modules/mascotas/components/MapaReportes';
+import { useReportes } from '@src/modules/mascotas/hooks/useReportes';
+import { EmptyState } from '@src/shared/components/EmptyState';
+import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
+import { useRouter } from 'expo-router';
 
 export default function MapaReportesPersonalScreen(): React.JSX.Element {
+  const router = useRouter();
+  const { reportes, loading, error } = useReportes();
+
+  if (loading && reportes.length === 0) {
+    return <LoadingIndicator fullScreen />;
+  }
+
+  if (error) {
+    return <EmptyState title="No se pudo cargar el mapa" message={error.message} />;
+  }
+
+  if (reportes.length === 0) {
+    return <EmptyState title="No hay reportes activos" message="Aun no hay ubicaciones para mostrar." />;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Mapa de Reportes</Text>
-    </View>
+    <MapaReportes
+      reportes={reportes}
+      onSelectReporte={(reporte) => router.push(`/(personal)/(tabs)/reportes/${reporte.id}` as never)}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
-  text: { fontSize: 18, color: Colors.textPrimary },
-});

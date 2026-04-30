@@ -8,6 +8,7 @@ export const Colors = {
   textPrimary: '#0F1F2E',
   textSecondary: '#6B7C87',
   error: '#E53935',
+  whatsapp: '#25D366',
   white: '#FFFFFF',
 } as const;
 
