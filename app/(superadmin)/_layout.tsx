@@ -4,7 +4,7 @@ import { RoleGuard } from '@src/shared/components/RoleGuard';
 import { useAuth } from '@src/shared/hooks/useAuth';
 import { Colors } from '@src/theme/colors';
 import { Tabs } from 'expo-router';
-import { Image, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
 export default function SuperAdminLayout(): React.JSX.Element {
   const { userProfile } = useAuth();
@@ -17,13 +17,29 @@ export default function SuperAdminLayout(): React.JSX.Element {
           headerTintColor: Colors.white,
           headerTitle: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ backgroundColor: Colors.white, borderRadius: 25, padding: 4 }}>
+              <View style={{
+                width: 35,
+                height: 35,
+                backgroundColor: Colors.white,
+                borderRadius: 100,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
                 <Image
                   source={require('../../assets/huellitas/logo.png')}
-                  style={{ width: 40, height: 40 }}
+                  style={{ width: 65, height: 65 }}
                   resizeMode="contain"
                 />
               </View>
+              {/* Nuevo Texto agregado a lado de la imagen */}
+              <Text style={{ 
+                color: Colors.white, 
+                marginLeft: 10, 
+                fontSize: 18, 
+                fontWeight: 'semibold' 
+              }}>
+                Fundación Huellitas
+              </Text>
             </View>
           ),
           tabBarActiveTintColor: Colors.primary,
