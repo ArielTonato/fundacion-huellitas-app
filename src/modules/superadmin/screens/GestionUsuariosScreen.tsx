@@ -423,7 +423,7 @@ export function GestionUsuariosScreen(): React.JSX.Element {
             <FormField
               control={control}
               name="password"
-              label="Contrasena temporal"
+              label="Contraseña temporal"
               placeholder="Minimo 6 caracteres"
               secureTextEntry
               errorMessage={errors.password?.message}
@@ -431,8 +431,8 @@ export function GestionUsuariosScreen(): React.JSX.Element {
             <FormField
               control={control}
               name="confirmPassword"
-              label="Confirmar contrasena"
-              placeholder="Repite la contrasena"
+              label="Confirmar contraseña"
+              placeholder="Repite la contraseña"
               secureTextEntry
               errorMessage={errors.confirmPassword?.message}
             />

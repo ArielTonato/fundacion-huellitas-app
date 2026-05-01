@@ -16,7 +16,18 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ImageBackground,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const patioFondo = require('../../../assets/huellitas/patio_fondo.png');
 
@@ -54,6 +65,7 @@ export default function SolicitudScreen(): React.JSX.Element {
   const { animal, loading: animalLoading } = useAnimal(animalId);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [adultCompanionModalVisible, setAdultCompanionModalVisible] = useState<boolean>(false);
   const {
     control,
     handleSubmit,
@@ -133,6 +145,34 @@ export default function SolicitudScreen(): React.JSX.Element {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <Modal
+        visible={adultCompanionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAdultCompanionModalVisible(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setAdultCompanionModalVisible(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <View style={styles.modalIconBox}>
+              <Ionicons name="people-circle" size={48} color={Colors.primary} />
+            </View>
+            <Text style={styles.modalTitle}>Acompañamiento para la entrevista</Text>
+            <Text style={styles.modalBody}>
+              Si tu solicitud avanza a entrevista, te pediremos asistir junto a una de las personas mayores de edad con
+              las que vives. Su presencia nos ayuda a conocer mejor el entorno donde estara el animal.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalPrimaryButton}
+              activeOpacity={0.86}
+              onPress={() => setAdultCompanionModalVisible(false)}
+            >
+              <Text style={styles.modalPrimaryButtonText}>Entendido</Text>
+              <Ionicons name="checkmark-circle" size={20} color={Colors.white} />
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <View style={styles.topBar}>
         <TouchableOpacity style={styles.iconButton} onPress={() => router.back()} activeOpacity={0.78}>
           <Ionicons name="arrow-back" size={22} color={Colors.primary} />
@@ -238,7 +278,11 @@ export default function SolicitudScreen(): React.JSX.Element {
             <TouchableOpacity
               style={styles.checkboxRow}
               activeOpacity={0.82}
-              onPress={() => onChange(!value)}
+              onPress={() => {
+                const nextValue = !value;
+                onChange(nextValue);
+                if (nextValue) setAdultCompanionModalVisible(true);
+              }}
             >
               <View style={[styles.checkbox, value ? styles.checkboxActive : null]}>
                 {value ? <Ionicons name="checkmark" size={18} color={Colors.white} /> : null}
@@ -454,6 +498,52 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
   },
   submitButtonText: {
+    color: Colors.white,
+    fontSize: FontSize.md,
+    fontWeight: '700',
+  },
+  modalBackdrop: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  modalCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 24,
+    padding: Spacing.xl,
+    width: '100%',
+  },
+  modalIconBox: {
+    marginBottom: Spacing.md,
+  },
+  modalTitle: {
+    color: Colors.textPrimary,
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  modalBody: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.sm,
+    lineHeight: 22,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+  modalPrimaryButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.accent,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    width: '100%',
+  },
+  modalPrimaryButtonText: {
     color: Colors.white,
     fontSize: FontSize.md,
     fontWeight: '700',
