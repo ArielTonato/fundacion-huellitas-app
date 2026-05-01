@@ -203,7 +203,7 @@ export default function DetalleSolicitudScreen(): React.JSX.Element {
           </TouchableOpacity>
         ) : null}
 
-        {solicitud.estado !== 'rechazada' && solicitud.estado !== 'aprobada' ? (
+        {solicitud.estado === 'pendiente' || solicitud.estado === 'en_revision' ? (
           <TouchableOpacity style={styles.primaryButton} disabled={submitting} onPress={scheduleInterview}>
             <Ionicons name="calendar-outline" size={20} color={Colors.white} />
             <Text style={styles.primaryButtonText}>Agendar entrevista</Text>
