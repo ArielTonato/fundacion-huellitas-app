@@ -3,11 +3,11 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'fundacion-huellitas-app',
+  name: 'Fundacion Huellitas',
   slug: 'fundacion-huellitas-app',
   version: '1.0.0',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/huellitas/logo.png',
   scheme: 'fundacionhuellitasapp',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
@@ -16,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     googleServicesFile: './google-services.json',
     adaptiveIcon: {
       backgroundColor: '#F4E6D2',
-      foregroundImage: './assets/images/android-icon-foreground.png',
+      foregroundImage: './assets/huellitas/logo.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
     },
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        image: './assets/images/splash-icon.png',
+        image: './assets/huellitas/logo.png',
         imageWidth: 200,
         resizeMode: 'contain',
         backgroundColor: '#F4E6D2',

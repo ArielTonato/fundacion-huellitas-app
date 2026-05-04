@@ -5,9 +5,9 @@ import {
   type BatchResponse,
   type MulticastMessage,
 } from "firebase-admin/messaging";
+import * as logger from "firebase-functions/logger";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
 
 if (getApps().length === 0) {
   initializeApp();
@@ -33,6 +33,8 @@ const INVALID_TOKEN_CODES = new Set([
   "messaging/invalid-registration-token",
   "messaging/registration-token-not-registered",
 ]);
+const ANDROID_NOTIFICATION_CHANNEL_ID = "default";
+const ANDROID_NOTIFICATION_ICON = "ic_launcher";
 const MAX_MULTICAST_TOKENS = 500;
 
 async function getActiveSuperadminData(uid: string): Promise<FirebaseFirestore.DocumentData> {
@@ -81,11 +83,17 @@ async function sendReportNotification(
     tokens: users.map((user) => user.token),
     notification: {
       title: "Mascota extraviada",
-      body: `${reporte.nombre ?? "Una mascota"} (${reporte.especie ?? "sin especie"}) fue reportada cerca de ti.`,
+      body: `${reporte.nombre ?? "Una mascota"} (${reporte.especie ?? "sin especie"}) fue reportada desaparecida.`,
     },
     data: {
       type: "reporte_creado",
       reporteId,
+    },
+    android: {
+      notification: {
+        channelId: ANDROID_NOTIFICATION_CHANNEL_ID,
+        icon: ANDROID_NOTIFICATION_ICON,
+      },
     },
   };
 
@@ -190,6 +198,12 @@ export const enviarNotificacionPrueba = onCall(
         },
         data: {
           type: "notificacion_prueba",
+        },
+        android: {
+          notification: {
+            channelId: ANDROID_NOTIFICATION_CHANNEL_ID,
+            icon: ANDROID_NOTIFICATION_ICON,
+          },
         },
       });
 
