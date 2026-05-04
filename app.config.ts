@@ -66,6 +66,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           'Permitir a Huellitas guardar imagenes generadas en tu galeria.',
       },
     ],
+    [
+      'expo-build-properties',
+      {
+        android: {
+          extraMavenRepos: [
+            '../../node_modules/@notifee/react-native/android/libs',
+          ],
+        },
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

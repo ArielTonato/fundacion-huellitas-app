@@ -1,14 +1,12 @@
 import {
   getMessaging,
-  requestPermission,
   getToken,
   onTokenRefresh,
   onMessage,
   onNotificationOpenedApp,
-  AuthorizationStatus,
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance } from '@notifee/react-native';
+import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
 import { updateDocument } from '@src/shared/services/firebase/firestore';
 
 const DEFAULT_CHANNEL_ID = 'default';
@@ -44,12 +42,11 @@ export async function displayForegroundNotification(
 }
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  const messaging = getMessaging();
-  const authStatus = await requestPermission(messaging);
-  const enabled =
-    authStatus === AuthorizationStatus.AUTHORIZED ||
-    authStatus === AuthorizationStatus.PROVISIONAL;
-  return enabled;
+  const settings = await notifee.requestPermission();
+  return (
+    settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+    settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
+  );
 }
 
 export async function registerFcmToken(uid: string): Promise<void> {
