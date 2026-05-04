@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   FlatList,
+  Image,
   RefreshControl,
   StyleSheet,
   Text,
@@ -92,10 +93,13 @@ export function ReportesList({
           </View>
         }
         ListEmptyComponent={
-          <EmptyState
-            title="No hay reportes activos"
-            message="Cuando se reporte una mascota extraviada, aparecera aqui en tiempo real."
-          />
+          <View style={styles.emptyContainer}>
+            <Image source={require('../../../../assets/huellitas/reporte.jpg')} style={styles.emptyImage} resizeMode="contain" />
+            <EmptyState
+              title="No hay reportes activos"
+              message="Cuando se reporte una mascota extraviada, aparecera aqui en tiempo real."
+            />
+          </View>
         }
       />
     </View>
@@ -183,5 +187,13 @@ const styles = StyleSheet.create({
     color: Colors.error,
     fontSize: FontSize.sm,
     marginTop: Spacing.md,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+  },
+  emptyImage: {
+    borderRadius: 90,
+    height: 180,
+    width: 180,
   },
 });
