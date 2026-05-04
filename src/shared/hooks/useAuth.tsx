@@ -9,7 +9,10 @@ import {
 } from '@src/shared/services/firebase/auth';
 import { updateDocument } from '@src/shared/services/firebase/firestore';
 import {
+  displayForegroundNotification,
+  ensureAndroidNotificationChannel,
   onFcmTokenRefresh,
+  onForegroundMessage,
   registerFcmToken,
   requestNotificationPermission,
 } from '@src/shared/services/notifications/fcm';
@@ -40,14 +43,28 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-async function setupNotifications(uid: string): Promise<(() => void) | undefined> {
+interface NotificationCleanup {
+  unsubscribeTokenRefresh: () => void;
+  unsubscribeForegroundMessages: () => void;
+}
+
+async function setupNotifications(uid: string): Promise<NotificationCleanup | undefined> {
   const hasPermission = await requestNotificationPermission();
   if (!hasPermission) {
     return undefined;
   }
 
+  await ensureAndroidNotificationChannel();
   await registerFcmToken(uid);
-  return onFcmTokenRefresh(uid);
+
+  const unsubscribeTokenRefresh = onFcmTokenRefresh(uid);
+  const unsubscribeForegroundMessages = onForegroundMessage((remoteMessage) => {
+    displayForegroundNotification(remoteMessage).catch((error) => {
+      console.warn('No se pudo mostrar la notificacion en primer plano.', error);
+    });
+  });
+
+  return { unsubscribeTokenRefresh, unsubscribeForegroundMessages };
 }
 
 export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element {
@@ -56,30 +73,36 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    let unsubscribeTokenRefresh: (() => void) | undefined;
+    let notificationCleanup: NotificationCleanup | undefined;
+
+    const releaseNotifications = (): void => {
+      notificationCleanup?.unsubscribeTokenRefresh();
+      notificationCleanup?.unsubscribeForegroundMessages();
+      notificationCleanup = undefined;
+    };
+
     const unsubscribe = onAuthStateChanged(async (user) => {
       setAuthUser(user);
       if (user) {
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
-        unsubscribeTokenRefresh?.();
+        releaseNotifications();
         setupNotifications(user.uid)
-          .then((unsubscribeRefresh) => {
-            unsubscribeTokenRefresh = unsubscribeRefresh;
+          .then((cleanup) => {
+            notificationCleanup = cleanup;
           })
           .catch((error) => {
             console.warn('No se pudo registrar el token FCM.', error);
           });
       } else {
-        unsubscribeTokenRefresh?.();
-        unsubscribeTokenRefresh = undefined;
+        releaseNotifications();
         setUserProfile(null);
       }
       setLoading(false);
     });
 
     return () => {
-      unsubscribeTokenRefresh?.();
+      releaseNotifications();
       unsubscribe();
     };
   }, []);

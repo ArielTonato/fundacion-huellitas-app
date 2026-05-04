@@ -6,7 +6,18 @@
       "Bash(mv \"app/\\(personal\\)/reportes/[id].tsx\" \"app/\\(personal\\)/\\(tabs\\)/reportes/[id].tsx\")",
       "Bash(xargs grep *)",
       "Bash(npx tsc *)",
-      "Bash(echo \"EXIT=$?\")"
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npx expo *)",
+      "Bash(./gradlew.bat app:assembleDebug -x lint -x test --stacktrace)",
+      "Bash(npm ls *)",
+      "Bash(./gradlew.bat app:assembleDebug -x lint -x test)",
+      "Bash(./gradlew.bat --stop)",
+      "Bash(./gradlew.bat app:assembleDebug -x lint -x test --info)",
+      "Bash(./gradlew.bat app:assembleDebug -x lint -x test --debug)",
+      "Bash(java --version)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/java\" --version)",
+      "Read(//c/Program Files/Java/**)",
+      "Read(//c/Program Files/**)"
     ]
   }
 }

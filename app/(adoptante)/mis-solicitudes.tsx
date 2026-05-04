@@ -70,7 +70,8 @@ function FilterChip({
 
 function SolicitudListItem({ solicitud }: { solicitud: Solicitud }): React.JSX.Element {
   const { entrevistas } = useEntrevistas({
-    solicitudId: solicitud.estado === 'entrevista_agendada' ? solicitud.id : undefined,
+    enabled: solicitud.estado === 'entrevista_agendada',
+    solicitudId: solicitud.id,
   });
 
   return <SolicitudCard solicitud={solicitud} entrevista={entrevistas[0] ?? null} />;

@@ -26,6 +26,11 @@ service cloud.firestore {
       return isActiveAuthenticated() && getRole() == 'adoptante';
     }
 
+    function ownsSolicitud(solicitudId) {
+      return isActiveAuthenticated() &&
+        get(/databases/$(database)/documents/solicitudes/$(solicitudId)).data.adoptanteId == request.auth.uid;
+    }
+
     function isAllowedOwnUserUpdate(userId) {
       return isActiveAuthenticated() &&
         request.auth.uid == userId &&
@@ -79,7 +84,8 @@ service cloud.firestore {
     }
 
     match /entrevistas/{entrevistaId} {
-      allow read, write: if isPersonal();
+      allow read: if isPersonal() || ownsSolicitud(resource.data.solicitudId);
+      allow write: if isPersonal();
     }
 
     match /reportes/{reporteId} {

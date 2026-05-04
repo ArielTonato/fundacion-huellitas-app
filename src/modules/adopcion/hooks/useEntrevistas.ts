@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 type WhereConstraint = ReturnType<typeof where>;
 
 interface UseEntrevistasOptions {
+  enabled?: boolean;
   solicitudId?: string;
   estado?: EstadoEntrevista;
 }
@@ -34,9 +35,16 @@ export function useEntrevistas(options: UseEntrevistasOptions = {}): UseEntrevis
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const { solicitudId, estado } = options;
+  const { enabled = true, solicitudId, estado } = options;
 
   useEffect(() => {
+    if (!enabled) {
+      setEntrevistas([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     const db = getFirestore();
     const entrevistasQuery = query(collection(db, 'entrevistas'), ...buildEntrevistaConstraints({ solicitudId, estado }));
 
@@ -53,7 +61,7 @@ export function useEntrevistas(options: UseEntrevistasOptions = {}): UseEntrevis
         setLoading(false);
       }
     );
-  }, [solicitudId, estado, refreshKey]);
+  }, [enabled, solicitudId, estado, refreshKey]);
 
   return { entrevistas, loading, error, refresh: () => setRefreshKey((current) => current + 1) };
 }

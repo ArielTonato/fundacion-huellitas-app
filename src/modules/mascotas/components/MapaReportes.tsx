@@ -2,9 +2,9 @@ import type { Reporte } from '@src/shared/types/models';
 import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, type Region } from 'react-native-maps';
 
 interface MapaReportesProps {
   reportes: Reporte[];
@@ -19,6 +19,9 @@ const DEFAULT_REGION = {
 };
 
 const FALLBACK_IMAGE = 'https://cdn-icons-png.flaticon.com/512/616/616408.png';
+const ZOOM_FACTOR = 0.5;
+const MIN_DELTA = 0.005;
+const MAX_DELTA = 1;
 const MARKER_COLORS = [
   Colors.accent,
   Colors.primary,
@@ -46,6 +49,14 @@ function getMarkerColor(index: number): string {
   return MARKER_COLORS[index % MARKER_COLORS.length];
 }
 
+function getZoomRegion(region: Region, factor: number): Region {
+  return {
+    ...region,
+    latitudeDelta: Math.min(Math.max(region.latitudeDelta * factor, MIN_DELTA), MAX_DELTA),
+    longitudeDelta: Math.min(Math.max(region.longitudeDelta * factor, MIN_DELTA), MAX_DELTA),
+  };
+}
+
 interface ReporteMarkerProps {
   reporte: Reporte;
   color: string;
@@ -68,12 +79,25 @@ function ReporteMarker({ reporte, color, selected, onPress }: ReporteMarkerProps
 }
 
 export function MapaReportes({ reportes, onSelectReporte }: MapaReportesProps): React.JSX.Element {
+  const mapRef = useRef<MapView | null>(null);
+  const [region, setRegion] = useState<Region>(getInitialRegion(reportes));
   const [selectedReporte, setSelectedReporte] = useState<Reporte | null>(null);
   const selectedPhoto = selectedReporte?.fotos?.[0] ?? FALLBACK_IMAGE;
 
+  function updateZoom(factor: number): void {
+    const zoomRegion = getZoomRegion(region, factor);
+    setRegion(zoomRegion);
+    mapRef.current?.animateToRegion(zoomRegion, 220);
+  }
+
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} initialRegion={getInitialRegion(reportes)}>
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={region}
+        onRegionChangeComplete={setRegion}
+      >
         {reportes.map((reporte, index) => (
           <ReporteMarker
             key={reporte.id}
@@ -84,6 +108,25 @@ export function MapaReportes({ reportes, onSelectReporte }: MapaReportesProps): 
           />
         ))}
       </MapView>
+
+      <View style={styles.zoomControls}>
+        <TouchableOpacity
+          style={styles.zoomButton}
+          activeOpacity={0.82}
+          accessibilityLabel="Acercar mapa"
+          onPress={() => updateZoom(ZOOM_FACTOR)}
+        >
+          <Text style={styles.zoomButtonText}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.zoomButton}
+          activeOpacity={0.82}
+          accessibilityLabel="Alejar mapa"
+          onPress={() => updateZoom(1 / ZOOM_FACTOR)}
+        >
+          <Text style={styles.zoomButtonText}>−</Text>
+        </TouchableOpacity>
+      </View>
 
       {selectedReporte ? (
         <TouchableOpacity
@@ -113,6 +156,31 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  zoomControls: {
+    gap: Spacing.sm,
+    position: 'absolute',
+    right: Spacing.lg,
+    top: Spacing.lg,
+  },
+  zoomButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 22,
+    elevation: 4,
+    height: 44,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    width: 44,
+  },
+  zoomButtonText: {
+    color: Colors.primary,
+    fontSize: FontSize.xxl,
+    fontWeight: '700',
+    lineHeight: 30,
   },
   previewCard: {
     alignItems: 'center',
