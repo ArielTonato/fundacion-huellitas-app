@@ -34,9 +34,10 @@ interface ReporteDetailProps {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HERO_HEIGHT = 330;
 
-function getWhatsappUrl(phone: string): string {
+function getWhatsappUrl(phone: string, petName: string): string {
   const normalizedPhone = phone.replace(/\D/g, '').replace(/^0/, '');
-  return `https://wa.me/593${normalizedPhone}`;
+  const message = `Hola, tengo información sobre ${petName}.`;
+  return `https://wa.me/593${normalizedPhone}?text=${encodeURIComponent(message)}`;
 }
 
 export function ReporteDetail({
@@ -67,7 +68,7 @@ export function ReporteDetail({
   const canResolve = showResolveAction && reporte.reportadoPor === authUser?.uid && reporte.estado === 'activo';
 
   const contactByWhatsapp = async (): Promise<void> => {
-    await Linking.openURL(getWhatsappUrl(reporte.telefonoContacto));
+    await Linking.openURL(getWhatsappUrl(reporte.telefonoContacto, reporte.nombre));
   };
 
   const openGallery = (index: number): void => {

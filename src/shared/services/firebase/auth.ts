@@ -16,6 +16,7 @@ import {
   writeBatch,
 } from '@react-native-firebase/firestore';
 import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { PRIVACY_POLICY_VERSION } from '@src/shared/constants/privacy';
 import type { Role, User } from '@src/shared/types/models';
 import { uploadProfileImage } from './storage';
 
@@ -34,6 +35,9 @@ type UserCreationData = {
   creadoEn: unknown;
   telefono?: string;
   fotoPerfilUrl?: string;
+  consentimientoPrivacidad: boolean;
+  consentimientoPrivacidadVersion: string;
+  consentimientoPrivacidadAceptadoEn: unknown;
 };
 
 type UserPhoneIndex = {
@@ -107,8 +111,13 @@ export async function signUp(
   password: string,
   nombre: string,
   telefono?: string,
-  fotoPerfilLocalUri?: string
+  fotoPerfilLocalUri?: string,
+  consentimientoPrivacidad = false
 ): Promise<AuthUser> {
+  if (!consentimientoPrivacidad) {
+    throw new Error('Debe aceptar la política de privacidad para crear la cuenta.');
+  }
+
   const auth = getAuth();
   const db = getFirestore();
   const normalizedPhone = telefono ? normalizePhoneNumber(telefono) : undefined;
@@ -127,6 +136,9 @@ export async function signUp(
       role: 'adoptante' as Role,
       activo: true,
       creadoEn: serverTimestamp(),
+      consentimientoPrivacidad: true,
+      consentimientoPrivacidadVersion: PRIVACY_POLICY_VERSION,
+      consentimientoPrivacidadAceptadoEn: serverTimestamp(),
     };
 
     if (normalizedPhone) {

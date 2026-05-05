@@ -29,7 +29,8 @@ interface AuthContextValue {
     password: string,
     nombre: string,
     telefono?: string,
-    fotoPerfilLocalUri?: string
+    fotoPerfilLocalUri?: string,
+    consentimientoPrivacidad?: boolean
   ) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
@@ -127,9 +128,10 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
       password: string,
       nombre: string,
       telefono?: string,
-      fotoPerfilLocalUri?: string
+      fotoPerfilLocalUri?: string,
+      consentimientoPrivacidad?: boolean
     ): Promise<void> => {
-      const user = await firebaseSignUp(email, password, nombre, telefono, fotoPerfilLocalUri);
+      const user = await firebaseSignUp(email, password, nombre, telefono, fotoPerfilLocalUri, consentimientoPrivacidad);
       const profile = await getUserProfile(user.uid);
       setUserProfile(profile);
     },

@@ -1,3 +1,401 @@
+## Plan Consolidado Final — App Fundacion Huellitas
+
+---
+
+## Fase 0 — Configuracion manual de Firebase y servicios externos
+
+> Esta fase es enteramente manual. No se genera codigo.
+
+### 0.1 Crear proyecto en Firebase Console
+1. Ir a [Firebase Console](https://console.firebase.google.com/)
+2. Crear proyecto: **"fundacion-huellitas"**
+3. Deshabilitar Google Analytics (opcional, no se usa en la app)
+
+### 0.2 Habilitar servicios en Firebase
+
+| Servicio | Configuracion |
+|---|---|
+| **Authentication** | Habilitar proveedor "Correo electronico/contrasena" |
+| **Cloud Firestore** | Crear base de datos en **modo produccion**, region `southamerica-east1` |
+| **Storage** | Iniciar en modo produccion, misma region |
+| **Cloud Functions** | Requiere plan **Blaze** (pago por uso). Activar facturacion |
+| **Cloud Messaging** | Se activa automaticamente con el proyecto |
+
+### 0.3 Registrar app Android
+- Registrar con package `com.fundacionhuellitas.app`
+- Descargar `google-services.json` y colocar en la raiz del proyecto
+- No se registra app iOS (la app es solo Android)
+
+### 0.4 Crear superadmin manualmente
+1. En Firebase Auth Console → crear usuario con email/contrasena
+2. Copiar el UID generado
+3. En Firestore → coleccion `users` → crear documento con ID = UID:
+```json
+{
+  "email": "admin@huellitas.org",
+  "nombre": "Administrador",
+  "role": "superadmin",
+  "creadoEn": "<timestamp>"
+}
+```
+
+### 0.5 Habilitar Google Maps API
+1. Ir a [Google Cloud Console](https://console.cloud.google.com/) (mismo proyecto vinculado a Firebase)
+2. Habilitar: **Maps SDK for Android**
+3. Crear clave de API → restringirla a la app Android registrada
+4. Guardar como `GOOGLE_MAPS_API_KEY` en `.env`
+
+### 0.6 Obtener clave de Gemini API
+1. Ir a [Google AI Studio](https://aistudio.google.com/)
+2. Generar API key para el modelo Imagen 3
+3. Guardar **exclusivamente** en `functions/.env` como `GEMINI_API_KEY` — nunca en el `.env` del cliente
+
+### 0.7 Archivo `.env` del cliente
+```
+GOOGLE_MAPS_API_KEY=<tu-clave>
+CLOUD_FUNCTIONS_URL=<url-base-de-functions>
+```
+
+### 0.8 Archivo `functions/.env`
+```
+GEMINI_API_KEY=<tu-clave>
+```
+
+### 0.9 Actualizar `.gitignore`
+Agregar:
+```
+.env
+google-services.json
+functions/node_modules
+functions/.env
+```
+
+---
+
+## Fase 1 — Instalacion de dependencias y scaffolding
+
+### 1.1 Instalar dependencias
+```powershell
+npx expo install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore @react-native-firebase/storage @react-native-firebase/messaging expo-dev-client react-native-maps expo-location expo-image-picker
+
+npm install react-hook-form @hookform/resolvers yup axios@1.15.1
+```
+
+> **Riesgo:** `axios@1.15.1` podria no existir en npm (la ultima estable es ~1.7.x). Si la instalacion falla, se necesitara confirmacion para usar la version mas cercana disponible.
+
+### 1.2 Inicializar Cloud Functions
+```powershell
+npm install -g firebase-tools
+firebase login
+firebase init functions
+```
+Seleccionar TypeScript, instalar dependencias.
+
+### 1.3 Migrar `app.json` a `app.config.ts`
+Necesario para leer variables de `.env` dinamicamente. El archivo resultante incluira:
+- Plugins de Firebase (`@react-native-firebase/app`)
+- Plugin de `react-native-maps` con `GOOGLE_MAPS_API_KEY`
+- Plugin de `expo-location` y `expo-image-picker` con descripciones en espanol
+- `android.package`: `com.fundacionhuellitas.app`
+- Sin bloque `ios` (app solo Android)
+
+### 1.4 Ajustar `tsconfig.json`
+Agregar alias para `src/`:
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"],
+      "@src/*": ["./src/*"]
+    }
+  }
+}
+```
+
+### 1.5 Eliminar archivos de template
+
+**Eliminar:**
+- `app/(tabs)/_layout.tsx`, `index.tsx`, `explore.tsx`
+- `app/modal.tsx`
+- `components/hello-wave.tsx`, `parallax-scroll-view.tsx`, `external-link.tsx`, `haptic-tab.tsx`
+- `components/ui/collapsible.tsx`, `icon-symbol.tsx`, `icon-symbol.ios.tsx`
+- `scripts/reset-project.js`
+- `assets/images/partial-react-logo.png`, `react-logo*.png`
+
+**Mantener y modificar:**
+- `components/themed-text.tsx`, `components/themed-view.tsx` (actualizar paleta)
+- `hooks/use-color-scheme.ts`, `hooks/use-theme-color.ts` (mantener interfaz, actualizar valores)
+
+### 1.6 Crear estructura de carpetas
+
+```
+src/
+  theme/
+    colors.ts
+    spacing.ts
+    typography.ts
+    animations.ts
+  modules/
+    adopcion/
+      screens/
+      components/
+      hooks/
+      services/
+      schemas/
+      utils/
+    mascotas/
+      screens/
+      components/
+      hooks/
+      services/
+      schemas/
+    ia-generativa/
+      components/
+      services/
+    superadmin/
+      screens/
+      components/
+      hooks/
+      services/
+  shared/
+    components/
+    hooks/
+    types/
+    utils/
+    services/
+      firebase/
+      notifications/
+functions/
+  src/
+```
+
+---
+
+## Fase 2 — Theme, tipos compartidos, servicios Firebase e infraestructura
+
+### 2.1 Archivos de tema
+
+**`src/theme/colors.ts`** — unica fuente de verdad para colores:
+```ts
+export const Colors = {
+  primary: '#1F3A56',
+  secondary: '#4CAF96',
+  accent: '#FF8F4A',
+  background: '#F4E6D2',
+  neutralMid: '#A88F79',
+  neutralLight: '#F2F4F7',
+  textPrimary: '#0F1F2E',
+  textSecondary: '#6B7C87',
+  error: '#E53935',
+  white: '#FFFFFF',
+} as const;
+```
+
+Ningun valor hexadecimal se usa fuera de este archivo en toda la aplicacion.
+
+**`src/theme/spacing.ts`** — escala de espaciado: `{ xs:4, sm:8, md:12, lg:16, xl:24, xxl:32, xxxl:48 }`
+
+**`src/theme/typography.ts`** — tamanos de fuente (12/14/16/18/20/24/32), pesos, line-height
+
+**`src/theme/animations.ts`** — configuraciones de Reanimated con `useReducedMotion()`:
+- Button press: `withSpring` scale a 0.96
+- Card entrance: staggered `FadeInUp`
+- Form submit: checkmark animation
+- Tab transitions: crossfade/slide
+- Todos desactivados/minimizados cuando reduced motion esta activo
+
+### 2.2 Tipos compartidos — `src/shared/types/models.ts`
+
+```ts
+import { Timestamp } from '@react-native-firebase/firestore';
+
+type Role = 'superadmin' | 'personal' | 'adoptante';
+type Especie = 'perro' | 'gato';
+type EstadoAnimal = 'disponible' | 'en_proceso' | 'adoptado';
+type EstadoSolicitud = 'pendiente' | 'en_revision' | 'entrevista_agendada' | 'aprobada' | 'rechazada';
+type EstadoEntrevista = 'programada' | 'completada' | 'cancelada';
+type EstadoReporte = 'activo' | 'resuelto';
+
+interface User {
+  uid: string;
+  email: string;
+  nombre: string;
+  role: Role;
+  telefono?: string;
+  direccion?: string;
+  fcmToken?: string;
+}
+
+interface Edad {
+  anios?: number;
+  meses?: number;
+  dias?: number;
+}
+
+interface Animal {
+  id: string;
+  nombre: string;
+  especie: Especie;
+  raza: string;
+  edad: Edad;
+  sexo: string;
+  tamano: string;
+  descripcion: string;
+  estadoSalud: string;
+  vacunado: boolean;
+  esterilizado: boolean;
+  fotos: string[];       // maximo 5, indice 0 = portada
+  estado: EstadoAnimal;
+  ubicacion: string;
+  creadoPor: string;
+  creadoEn: Timestamp;
+}
+
+interface Solicitud {
+  id: string;
+  animalId: string;
+  adoptanteId: string;
+  nombreCompleto: string;
+  fotoCedulaFrontal: string;    // URL de Storage
+  fotoCedulaPosterior: string;  // URL de Storage
+  telefonoCelular?: string;
+  telefonoFijo?: string;
+  ingresosMensuales: number;
+  fotoUbicacionAnimal: string;  // URL de Storage
+  viveAcompanado: boolean;
+  estado: EstadoSolicitud;
+  creadoEn: Timestamp;
+}
+
+interface Entrevista {
+  id: string;
+  solicitudId: string;
+  fecha: Timestamp;
+  hora: string;
+  notas: string;
+  estado: EstadoEntrevista;
+  resultado?: string;
+}
+
+interface Reporte {
+  id: string;
+  nombre: string;
+  especie: Especie;
+  descripcion: string;
+  fotos: string[];              // maximo 3, indice 0 = portada
+  ultimaUbicacion: {
+    latitude: number;
+    longitude: number;
+    direccion: string;
+  };
+  telefonoContacto: string;     // numero de WhatsApp del reportante
+  reportadoPor: string;
+  estado: EstadoReporte;
+  creadoEn: Timestamp;
+}
+```
+
+### 2.3 Servicios Firebase — `src/shared/services/firebase/`
+
+| Archivo | Responsabilidad |
+|---|---|
+| `config.ts` | Inicializacion de Firebase (SDKs nativos leen `google-services.json` automaticamente) |
+| `auth.ts` | `signIn()`, `signUp()`, `signOut()`, `onAuthStateChanged()` |
+| `firestore.ts` | Helpers tipados genericos: `getDoc<T>()`, `addDoc<T>()`, `updateDoc<T>()`, `queryDocs<T>()` |
+| `storage.ts` | `uploadImage(path, uri)` → URL, `deleteImage(path)` |
+
+**`src/shared/services/api.ts`** — Instancia Axios con `baseURL` desde env, interceptor que adjunta Firebase ID token, interceptor de errores.
+
+**`src/shared/services/notifications/fcm.ts`** — Solicitar permisos, guardar token FCM en `users/{uid}.fcmToken`, listeners `onMessage` y `onNotificationOpenedApp`.
+
+### 2.4 Componentes compartidos — `src/shared/components/`
+
+| Componente | Proposito |
+|---|---|
+| `FormField.tsx` | Wrapper de `Controller` (RHF) + TextInput + error display |
+| `StatusBadge.tsx` | Badge con color segun estado |
+| `LoadingIndicator.tsx` | Spinner con colores del tema |
+| `EmptyState.tsx` | Ilustracion + mensaje cuando no hay datos |
+| `RoleGuard.tsx` | Acepta `allowedRoles: Role[]`, redirige si no autorizado |
+
+### 2.5 Hooks compartidos — `src/shared/hooks/`
+
+| Hook | Proposito |
+|---|---|
+| `useAuth.ts` | Estado de autenticacion + rol del usuario + loading |
+| `useFirestoreQuery.ts` | Suscripcion real-time a queries de Firestore, tipado generico |
+
+---
+
+## Fase 3 — Autenticacion y enrutamiento por rol
+
+### 3.1 Estructura de rutas con expo-router (Route Groups)
+
+```
+app/
+  _layout.tsx              ← AuthProvider + redirect segun rol
+  (auth)/
+    _layout.tsx            ← Stack para auth
+    login.tsx
+    register.tsx
+  (adoptante)/
+    _layout.tsx            ← Tabs: Catalogo, Mis Solicitudes, Reportes, Perfil
+    index.tsx              ← CatalogoScreen
+    animal/[id].tsx        ← AnimalDetailScreen
+    solicitud/[animalId].tsx
+    mis-solicitudes.tsx
+    reportes/index.tsx     ← ListaReportesScreen
+    reportes/reportar.tsx  ← ReportarScreen
+    reportes/mapa.tsx      ← MapaScreen
+    reportes/[id].tsx      ← DetalleReporteScreen
+  (personal)/
+    _layout.tsx            ← Tabs: Animales, Solicitudes, Entrevistas, Reportes
+    index.tsx              ← GestionAnimalesScreen
+    animal/registrar.tsx
+    animal/editar/[id].tsx ← EditarAnimalScreen
+    solicitudes/index.tsx
+    solicitudes/[id].tsx
+    entrevistas/index.tsx
+    entrevistas/agendar/[solicitudId].tsx
+    reportes/index.tsx
+    reportes/mapa.tsx
+    reportes/[id].tsx
+  (superadmin)/
+    _layout.tsx
+    index.tsx              ← GestionUsuariosScreen
+```
+
+### 3.2 Flujo de autenticacion
+
+```mermaid
+flowchart TD
+    A[App inicia] --> B{Usuario autenticado?}
+    B -- No --> C["(auth)/login"]
+    B -- Si --> D[Leer role de Firestore]
+    D --> E{role?}
+    E -- adoptante --> F["(adoptante)/"]
+    E -- personal --> G["(personal)/"]
+    E -- superadmin --> H["(superadmin)/"]
+```
+
+### 3.3 `app/_layout.tsx`
+- Wrappea con `AuthProvider` (contexto React)
+- Usa `useAuth()` para determinar estado y rol
+- Muestra splash/loading mientras resuelve auth (fondo `#F4E6D2`)
+- Redirige al grupo de rutas correcto segun rol
+
+### 3.4 Schemas de auth — `src/shared/schemas/`
+
+| Archivo | Campos |
+|---|---|
+| `loginSchema.ts` | email (requerido, email valido), password (requerido, min 6) |
+| `registerSchema.ts` | nombre (requerido), email, password, confirmPassword (must match), telefono (opcional) |
+
+### 3.5 Pantallas de auth
+- `app/(auth)/login.tsx` → formulario con `loginSchema` + RHF
+- `app/(auth)/register.tsx` → formulario con `registerSchema` + RHF (solo rol adoptante)
+
+---
 
 
 ## Fase 4 — Modulo 1: Adopcion

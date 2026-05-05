@@ -5,6 +5,7 @@ export default function AuthLayout(): React.JSX.Element {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
+      <Stack.Screen name="privacy" />
     </Stack>
   );
 }

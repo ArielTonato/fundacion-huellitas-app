@@ -22,6 +22,10 @@ export const registerSchema = yup.object({
     .matches(/^[0-9]{10}$/, 'Ingrese un numero de telefono valido de 10 digitos')
     .notRequired()
     .default(''),
+  aceptaPrivacidad: yup
+    .boolean()
+    .oneOf([true], 'Debe aceptar la política de privacidad para registrarse')
+    .required('Debe aceptar la política de privacidad'),
 });
 
 export type RegisterFormData = yup.InferType<typeof registerSchema>;
