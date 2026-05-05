@@ -5,6 +5,7 @@ type Timestamp = FirebaseFirestoreTypes.Timestamp;
 export type Role = 'superadmin' | 'personal' | 'adoptante';
 
 export type Especie = 'perro' | 'gato';
+export type SexoAnimal = 'macho' | 'hembra';
 
 export type EstadoAnimal = 'disponible' | 'en_proceso' | 'adoptado';
 
@@ -87,6 +88,7 @@ export interface Reporte {
   id: string;
   nombre: string;
   especie: Especie;
+  sexo?: SexoAnimal;
   descripcion: string;
   fotos: string[];
   ultimaUbicacion: {

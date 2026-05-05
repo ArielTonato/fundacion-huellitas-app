@@ -72,6 +72,7 @@ export async function crearReporte(data: ReporteFormData, reportadoPor: string):
   const reporteData: ReporteFirestoreData = {
     nombre: data.nombre,
     especie: data.especie,
+    sexo: data.sexo,
     descripcion: data.descripcion,
     fotos,
     ultimaUbicacion,

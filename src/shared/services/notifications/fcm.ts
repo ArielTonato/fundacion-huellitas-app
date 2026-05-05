@@ -1,15 +1,17 @@
 import {
   getMessaging,
   getToken,
+  getInitialNotification,
   onTokenRefresh,
   onMessage,
   onNotificationOpenedApp,
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import notifee, { AndroidImportance, AuthorizationStatus } from '@notifee/react-native';
+import notifee, { AndroidImportance, AuthorizationStatus, EventType } from '@notifee/react-native';
 import { updateDocument } from '@src/shared/services/firebase/firestore';
 
 const DEFAULT_CHANNEL_ID = 'default';
+export type NotificationData = Record<string, string | object | number> | undefined;
 
 export async function ensureAndroidNotificationChannel(): Promise<void> {
   await notifee.createChannel({
@@ -80,4 +82,19 @@ export function onNotificationOpened(
 ): () => void {
   const messaging = getMessaging();
   return onNotificationOpenedApp(messaging, callback);
+}
+
+export function onLocalNotificationPressed(
+  callback: (data: NotificationData) => void
+): () => void {
+  return notifee.onForegroundEvent(({ type, detail }) => {
+    if (type === EventType.PRESS) {
+      callback(detail.notification?.data);
+    }
+  });
+}
+
+export function getInitialNotificationMessage(): Promise<FirebaseMessagingTypes.RemoteMessage | null> {
+  const messaging = getMessaging();
+  return getInitialNotification(messaging);
 }

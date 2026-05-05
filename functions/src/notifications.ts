@@ -16,6 +16,7 @@ if (getApps().length === 0) {
 interface ReporteNotificationData {
   nombre?: string;
   especie?: string;
+  sexo?: string;
   reportadoPor?: string;
 }
 
@@ -80,6 +81,17 @@ function getValidUserTokens(
   }, []);
 }
 
+function getReportNotificationBody(reporte: ReporteNotificationData): string {
+  const nombre = reporte.nombre ?? "Una mascota";
+  const especie = reporte.especie ?? "sin especie";
+
+  if (reporte.sexo === "macho") {
+    return `${nombre} (${especie}) fue reportado desaparecido.`;
+  }
+
+  return `${nombre} (${especie}) fue reportada desaparecida.`;
+}
+
 async function sendReportNotification(
   reporteId: string,
   reporte: ReporteNotificationData,
@@ -89,7 +101,7 @@ async function sendReportNotification(
     tokens: users.map((user) => user.token),
     notification: {
       title: "Mascota extraviada",
-      body: `${reporte.nombre ?? "Una mascota"} (${reporte.especie ?? "sin especie"}) fue reportada desaparecida.`,
+      body: getReportNotificationBody(reporte),
     },
     data: {
       type: "reporte_creado",

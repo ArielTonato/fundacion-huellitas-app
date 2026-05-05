@@ -38,6 +38,7 @@ const DEFAULT_LOCATION = {
 const DEFAULT_VALUES: ReporteFormData = {
   nombre: '',
   especie: 'perro',
+  sexo: 'hembra',
   descripcion: '',
   fotos: [],
   ultimaUbicacion: DEFAULT_LOCATION,
@@ -46,6 +47,10 @@ const DEFAULT_VALUES: ReporteFormData = {
 const SPECIES_OPTIONS: SelectOption<'perro' | 'gato'>[] = [
   { label: 'Perro', value: 'perro' },
   { label: 'Gato', value: 'gato' },
+];
+const SEX_OPTIONS: SelectOption<'macho' | 'hembra'>[] = [
+  { label: 'Macho', value: 'macho' },
+  { label: 'Hembra', value: 'hembra' },
 ];
 
 function SectionTitle({ icon, title }: { icon: keyof typeof Ionicons.glyphMap; title: string }): React.JSX.Element {
@@ -148,6 +153,13 @@ export function ReporteForm({ submitting, onSubmit }: ReporteFormProps): React.J
           name="especie"
           render={({ field: { value, onChange } }) => (
             <SelectGroup label="Especie" value={value} options={SPECIES_OPTIONS} onChange={onChange} />
+          )}
+        />
+        <Controller
+          control={control}
+          name="sexo"
+          render={({ field: { value, onChange } }) => (
+            <SelectGroup label="Sexo" value={value} options={SEX_OPTIONS} onChange={onChange} />
           )}
         />
         <FormField

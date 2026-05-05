@@ -3,6 +3,7 @@ import * as yup from 'yup';
 export const reporteSchema = yup.object({
   nombre: yup.string().required('El nombre es requerido'),
   especie: yup.string().oneOf(['perro', 'gato'], 'Seleccione una especie').required('La especie es requerida'),
+  sexo: yup.string().oneOf(['macho', 'hembra'], 'Seleccione el sexo').required('El sexo es requerido'),
   descripcion: yup.string().min(20, 'Minimo 20 caracteres').required('La descripcion es requerida'),
   fotos: yup.array().of(yup.string().required()).min(1, 'Agregue al menos una foto').max(3, 'Maximo 3 fotos').required(),
   ultimaUbicacion: yup.object({
