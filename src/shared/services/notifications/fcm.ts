@@ -43,7 +43,6 @@ export async function displayForegroundNotification(
     data: remoteMessage.data,
     android: {
       channelId: DEFAULT_CHANNEL_ID,
-      smallIcon: 'ic_launcher',
       pressAction: { id: 'default' },
     },
   });

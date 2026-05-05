@@ -15,6 +15,8 @@ import {
   FlatList,
   Image,
   Linking,
+  Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -46,6 +48,8 @@ export function ReporteDetail({
   const { authUser } = useAuth();
   const { reporte, loading, error } = useReporte(reporteId);
   const [resolving, setResolving] = useState<boolean>(false);
+  const [galleryVisible, setGalleryVisible] = useState<boolean>(false);
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState<number>(0);
 
   if (loading) {
     return <LoadingIndicator fullScreen />;
@@ -64,6 +68,11 @@ export function ReporteDetail({
 
   const contactByWhatsapp = async (): Promise<void> => {
     await Linking.openURL(getWhatsappUrl(reporte.telefonoContacto));
+  };
+
+  const openGallery = (index: number): void => {
+    setGalleryInitialIndex(index);
+    setGalleryVisible(true);
   };
 
   const resolveReport = (): void => {
@@ -94,6 +103,33 @@ export function ReporteDetail({
 
   return (
     <View style={styles.root}>
+      <Modal visible={galleryVisible} transparent animationType="fade" onRequestClose={() => setGalleryVisible(false)}>
+        <View style={styles.galleryBackdrop}>
+          <TouchableOpacity style={styles.galleryCloseButton} activeOpacity={0.86} onPress={() => setGalleryVisible(false)}>
+            <Ionicons name="close" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <FlatList
+            key={galleryInitialIndex}
+            data={reporte.fotos}
+            keyExtractor={(item) => item}
+            horizontal
+            pagingEnabled
+            initialScrollIndex={galleryInitialIndex}
+            getItemLayout={(_, index) => ({
+              index,
+              length: SCREEN_WIDTH,
+              offset: SCREEN_WIDTH * index,
+            })}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.galleryImageWrap}>
+                <Image source={{ uri: item }} style={styles.galleryImage} resizeMode="contain" />
+              </View>
+            )}
+          />
+        </View>
+      </Modal>
+
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.heroContainer}>
           <FlatList
@@ -102,11 +138,13 @@ export function ReporteDetail({
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.heroImage} resizeMode="cover" />
+            renderItem={({ item, index }) => (
+              <Pressable onPress={() => openGallery(index)}>
+                <Image source={{ uri: item }} style={styles.heroImage} resizeMode="cover" />
+              </Pressable>
             )}
           />
-          <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backButton} activeOpacity={0.8} onPress={() => router.replace(listRoute as never)}>
             <Ionicons name="arrow-back" size={22} color={Colors.primary} />
           </TouchableOpacity>
         </View>
@@ -195,6 +233,32 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     height: HERO_HEIGHT,
+    width: SCREEN_WIDTH,
+  },
+  galleryBackdrop: {
+    backgroundColor: 'rgba(15, 31, 46, 0.72)',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  galleryCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 999,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: Spacing.lg,
+    top: 52,
+    width: 44,
+    zIndex: 2,
+  },
+  galleryImageWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: SCREEN_WIDTH,
+  },
+  galleryImage: {
+    height: '82%',
     width: SCREEN_WIDTH,
   },
   backButton: {

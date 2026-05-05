@@ -35,7 +35,6 @@ const INVALID_TOKEN_CODES = new Set([
   "messaging/registration-token-not-registered",
 ]);
 const ANDROID_NOTIFICATION_CHANNEL_ID = "default";
-const ANDROID_NOTIFICATION_ICON = "ic_launcher";
 const MAX_MULTICAST_TOKENS = 500;
 
 async function getActiveSuperadminData(uid: string): Promise<FirebaseFirestore.DocumentData> {
@@ -110,7 +109,6 @@ async function sendReportNotification(
     android: {
       notification: {
         channelId: ANDROID_NOTIFICATION_CHANNEL_ID,
-        icon: ANDROID_NOTIFICATION_ICON,
       },
     },
   };
@@ -220,7 +218,6 @@ export const enviarNotificacionPrueba = onCall(
         android: {
           notification: {
             channelId: ANDROID_NOTIFICATION_CHANNEL_ID,
-            icon: ANDROID_NOTIFICATION_ICON,
           },
         },
       });
