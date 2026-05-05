@@ -65,13 +65,19 @@ function getValidUserTokens(
   docs: FirebaseFirestore.QueryDocumentSnapshot[],
   reporterUid: string
 ): UserToken[] {
-  return docs
-    .map((doc) => ({ uid: doc.id, token: doc.data().fcmToken }))
-    .filter((user): user is UserToken => (
-      user.uid !== reporterUid &&
-      typeof user.token === "string" &&
-      user.token.trim().length > 0
-    ));
+  return docs.reduce<UserToken[]>((users, doc) => {
+    const token = doc.data().fcmToken;
+    if (
+      doc.id === reporterUid ||
+      typeof token !== "string" ||
+      token.trim().length === 0 ||
+      users.some((user) => user.token === token)
+    ) {
+      return users;
+    }
+
+    return [...users, {uid: doc.id, token}];
+  }, []);
 }
 
 async function sendReportNotification(

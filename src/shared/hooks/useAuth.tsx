@@ -74,8 +74,10 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
 
   useEffect(() => {
     let notificationCleanup: NotificationCleanup | undefined;
+    let notificationSetupId = 0;
 
     const releaseNotifications = (): void => {
+      notificationSetupId += 1;
       notificationCleanup?.unsubscribeTokenRefresh();
       notificationCleanup?.unsubscribeForegroundMessages();
       notificationCleanup = undefined;
@@ -87,8 +89,14 @@ export function AuthProvider({ children }: AuthProviderProps): React.JSX.Element
         const profile = await getUserProfile(user.uid);
         setUserProfile(profile);
         releaseNotifications();
+        const currentSetupId = notificationSetupId;
         setupNotifications(user.uid)
           .then((cleanup) => {
+            if (currentSetupId !== notificationSetupId) {
+              cleanup?.unsubscribeTokenRefresh();
+              cleanup?.unsubscribeForegroundMessages();
+              return;
+            }
             notificationCleanup = cleanup;
           })
           .catch((error) => {

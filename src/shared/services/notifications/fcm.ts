@@ -24,12 +24,18 @@ export async function displayForegroundNotification(
 ): Promise<void> {
   const title = remoteMessage.notification?.title ?? remoteMessage.data?.title;
   const body = remoteMessage.notification?.body ?? remoteMessage.data?.body;
+  const reporteId = remoteMessage.data?.reporteId;
+  const type = remoteMessage.data?.type;
+  const notificationId = typeof reporteId === 'string'
+    ? `${typeof type === 'string' ? type : 'notification'}-${reporteId}`
+    : remoteMessage.messageId;
 
   if (!title && !body) {
     return;
   }
 
   await notifee.displayNotification({
+    id: notificationId,
     title: typeof title === 'string' ? title : undefined,
     body: typeof body === 'string' ? body : undefined,
     data: remoteMessage.data,
