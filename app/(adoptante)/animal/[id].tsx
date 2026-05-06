@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useAnimal } from '@src/modules/adopcion/hooks/useAnimal';
 import { useSolicitudes } from '@src/modules/adopcion/hooks/useSolicitudes';
-import { formatEdad } from '@src/modules/adopcion/utils/formatEdad';
 import { GenerativeAIFlow } from '@src/modules/ia-generativa/components/GenerativeAIFlow';
 import { EmptyState } from '@src/shared/components/EmptyState';
 import { LoadingIndicator } from '@src/shared/components/LoadingIndicator';
@@ -12,9 +11,9 @@ import { Colors } from '@src/theme/colors';
 import { Spacing } from '@src/theme/spacing';
 import { FontSize } from '@src/theme/typography';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Dimensions, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { useState } from 'react';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const HERO_HEIGHT = 400;
@@ -83,6 +82,12 @@ export default function AnimalDetailScreen(): React.JSX.Element {
     setGalleryInitialIndex(index);
     setGalleryVisible(true);
   };
+
+  const ageRows = [
+    { label: 'Años:', value: animal.edad.anios },
+    { label: 'Meses:', value: animal.edad.meses },
+    { label: 'Días:', value: animal.edad.dias },
+  ];
 
   return (
     <View style={styles.root}>
@@ -179,17 +184,26 @@ export default function AnimalDetailScreen(): React.JSX.Element {
 
           {/* Stat chips */}
           <View style={styles.statsRow}>
-            <View style={styles.statChip}>
+            <View style={styles.statTopRow}>
+              <View style={styles.statChip}>
+                <Text style={styles.statLabel}>Sexo</Text>
+                <Text style={styles.statValue}>{animal.sexo}</Text>
+              </View>
+              <View style={styles.statChip}>
+                <Text style={styles.statLabel}>Tamaño</Text>
+                <Text style={styles.statValue}>{animal.tamano}</Text>
+              </View>
+            </View>
+            <View style={[styles.statChip, styles.ageChip]}>
               <Text style={styles.statLabel}>Edad</Text>
-              <Text style={styles.statValue}>{formatEdad(animal.edad)}</Text>
-            </View>
-            <View style={styles.statChip}>
-              <Text style={styles.statLabel}>Sexo</Text>
-              <Text style={styles.statValue}>{animal.sexo}</Text>
-            </View>
-            <View style={styles.statChip}>
-              <Text style={styles.statLabel}>Tamaño</Text>
-              <Text style={styles.statValue}>{animal.tamano}</Text>
+              <View style={styles.ageRows}>
+                {ageRows.map((row) => (
+                  <View key={row.label} style={styles.ageRow}>
+                    <Text style={styles.ageRowLabel}>{row.label}</Text>
+                    <Text style={styles.ageRowValue}>{row.value ?? '—'}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
 
@@ -342,9 +356,12 @@ const styles = StyleSheet.create({
     marginRight: Spacing.md,
   },
   statsRow: {
-    flexDirection: 'row',
     gap: Spacing.md,
     marginBottom: Spacing.xl,
+  },
+  statTopRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
   },
   statChip: {
     alignItems: 'center',
@@ -353,6 +370,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
+  },
+  ageChip: {
+    alignSelf: 'stretch',
   },
   statLabel: {
     color: Colors.textSecondary,
@@ -364,6 +384,27 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     fontWeight: '600',
     textTransform: 'capitalize',
+  },
+  ageRows: {
+    alignSelf: 'stretch',
+    gap: Spacing.xs,
+    marginTop: Spacing.xs,
+    width: '100%',
+  },
+  ageRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  ageRowLabel: {
+    color: Colors.textSecondary,
+    fontSize: FontSize.xs,
+  },
+  ageRowValue: {
+    color: Colors.textPrimary,
+    fontSize: FontSize.sm,
+    fontWeight: '700',
   },
   section: {
     marginBottom: Spacing.xl,

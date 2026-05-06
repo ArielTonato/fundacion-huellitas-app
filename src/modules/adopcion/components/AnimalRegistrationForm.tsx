@@ -309,7 +309,10 @@ export function AnimalRegistrationForm({
         {submitting ? (
           <LoadingIndicator color={Colors.white} size="small" />
         ) : (
-          <Text style={styles.submitButtonText}>{submitLabel}</Text>
+          <View style={styles.submitButtonContent}>
+            <Ionicons name="paw" size={18} color={Colors.white} />
+            <Text style={styles.submitButtonText}>{submitLabel}</Text>
+          </View>
         )}
       </TouchableOpacity>
     </ScrollView>
@@ -473,6 +476,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 56,
     paddingVertical: Spacing.lg,
+  },
+  submitButtonContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: Spacing.sm,
   },
   submitButtonText: {
     color: Colors.white,
