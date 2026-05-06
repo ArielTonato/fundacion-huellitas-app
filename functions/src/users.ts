@@ -203,7 +203,7 @@ async function assertPhoneAvailable(phone: string | undefined, uid: string): Pro
 
 export const crearPersonal = onCall(async (request) => {
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Debes iniciar sesiÃ³n para crear personal.");
+    throw new HttpsError("unauthenticated", "Debes iniciar sesion para crear personal.");
   }
 
   await assertSuperadmin(request.auth.uid);
@@ -270,7 +270,7 @@ export const crearPersonal = onCall(async (request) => {
 
 export const editarPersonal = onCall(async (request) => {
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Debes iniciar sesiÃƒÂ³n para editar personal.");
+    throw new HttpsError("unauthenticated", "Debes iniciar sesion para editar personal.");
   }
 
   await assertSuperadmin(request.auth.uid);
@@ -344,7 +344,7 @@ export const editarPersonal = onCall(async (request) => {
 
 export const desactivarPersonal = onCall(async (request) => {
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Debes iniciar sesiÃ³n para desactivar personal.");
+    throw new HttpsError("unauthenticated", "Debes iniciar sesion para desactivar personal.");
   }
 
   await assertSuperadmin(request.auth.uid);
@@ -363,7 +363,7 @@ export const desactivarPersonal = onCall(async (request) => {
 
 export const reactivarPersonal = onCall(async (request) => {
   if (!request.auth) {
-    throw new HttpsError("unauthenticated", "Debes iniciar sesiÃ³n para reactivar personal.");
+    throw new HttpsError("unauthenticated", "Debes iniciar sesion para reactivar personal.");
   }
 
   await assertSuperadmin(request.auth.uid);
