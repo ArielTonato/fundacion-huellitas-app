@@ -475,7 +475,7 @@ export function GestionUsuariosScreen(): React.JSX.Element {
             <Text style={styles.eyebrow}>Panel superadmin</Text>
             <Text style={styles.title}>Gestion de usuarios</Text>
             <Text style={styles.subtitle}>Crea, desactiva o reactiva cuentas del personal.</Text>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.testNotificationButton}
               activeOpacity={0.82}
               disabled={testNotificationLoading}
@@ -489,7 +489,7 @@ export function GestionUsuariosScreen(): React.JSX.Element {
                 <Ionicons name="notifications-outline" size={18} color={Colors.accent} />
               )}
               <Text style={styles.testNotificationText}>Enviar prueba de notificacion</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <View style={styles.searchBox}>
               <Ionicons name="search" size={18} color={Colors.textSecondary} />

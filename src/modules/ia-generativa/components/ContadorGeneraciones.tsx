@@ -10,7 +10,7 @@ interface ContadorGeneracionesProps {
 
 export function ContadorGeneraciones({ remaining }: ContadorGeneracionesProps): React.JSX.Element {
   const message = remaining > 0
-    ? `Te quedan ${remaining} generaciones hoy`
+    ? `Te ${remaining === 1 ? 'queda' : 'quedan'} ${remaining} ${remaining === 1 ? 'generación' : 'generaciones'} hoy`
     : 'Vuelve mañana';
   const color = remaining >= 3 ? Colors.secondary : remaining === 2 ? Colors.accent : Colors.error;
 

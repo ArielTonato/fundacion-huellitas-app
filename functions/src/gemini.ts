@@ -10,7 +10,7 @@ if (getApps().length === 0) {
 
 const DAILY_LIMIT = 3;
 const MAX_BASE64_LENGTH = 8_000_000;
-const GEMINI_MODEL = "gemini-2.5-flash-image";
+const GEMINI_MODEL = "gemini-3.1-flash-image-preview";
 const ECUADOR_TIME_ZONE = "America/Guayaquil";
 const SUPPORTED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -119,10 +119,11 @@ function buildPrompt(animalName: string | undefined): string {
 
   return [
     "Create a warm, realistic vertical portrait for an animal adoption preview.",
-    `Use the pet from the first image as ${petName}.`,
-    "Use the person from the second image as the adopter.",
-    "Compose them together in a cozy home, with natural soft light, emotional but realistic.",
-    "Preserve the pet's recognizable traits and avoid adding text, logos, UI elements, or watermarks.",
+    `Use the pet from the first image as ${petName}, preserving its coat color, markings, face shape, ears, eyes, and overall body proportions.`,
+    "Use the person from the second image as the adopter, preserving facial features, hairstyle, skin tone, clothing, accessories, and general appearance.",
+    "Keep both subjects photorealistic and recognizable, without beautifying, replacing, or stylizing their identity or outfit.",
+    "Compose them together in a cozy home with natural soft light and a gentle emotional mood.",
+    "Avoid adding text, logos, UI elements, frames, props that hide their faces, or watermarks.",
   ].join(" ");
 }
 
