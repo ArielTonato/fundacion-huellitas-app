@@ -326,6 +326,7 @@ Los modelos principales están tipados en `src/shared/types/models.ts`.
 - Formulario de reporte
 - Mapa con marcadores
 - Detalle del reporte
+- Muestra de la notificacion push
 
 **Diagrama:** integrar el PlantUML de notificaciones push (incluido completo en la sección 7 de este documento).
 

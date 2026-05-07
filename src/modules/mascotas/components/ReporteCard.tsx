@@ -39,7 +39,7 @@ export function ReporteCard({ reporte, index = 0, onPress }: ReporteCardProps): 
             </View>
             <View style={styles.badge}>
               <Ionicons name="alert-circle" size={14} color={Colors.white} />
-              <Text style={styles.badgeText}>Extraviada</Text>
+              <Text style={styles.badgeText}>Extraviad{reporte.sexo === 'macho' ? 'o' : 'a'}</Text>
             </View>
           </View>
 

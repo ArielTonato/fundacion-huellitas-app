@@ -1,5 +1,8 @@
 import * as yup from 'yup';
 
+export const MAX_AGE_MONTHS = 12;
+export const MAX_AGE_DAYS = 31;
+
 const optionalNumber = yup
   .number()
   .transform((value, originalValue) => (originalValue === '' ? undefined : value))
@@ -15,8 +18,8 @@ export const animalSchema = yup.object({
   edad: yup
     .object({
       anios: optionalNumber,
-      meses: optionalNumber.max(11, 'Los meses deben estar entre 0 y 11'),
-      dias: optionalNumber.max(30, 'Los dias deben estar entre 0 y 30'),
+      meses: optionalNumber.max(MAX_AGE_MONTHS, 'Los meses deben estar entre 0 y 12'),
+      dias: optionalNumber.max(MAX_AGE_DAYS, 'Los dias deben estar entre 0 y 31'),
     })
     .test('edad-requerida', 'Ingrese al menos una parte de la edad', (value) =>
       Boolean(value?.anios || value?.meses || value?.dias)

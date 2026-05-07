@@ -96,6 +96,7 @@ export default function LoginScreen(): React.JSX.Element {
             label="Contraseña"
             placeholder="Ingrese su contraseña"
             secureTextEntry
+            showSecureTextToggle
             errorMessage={errors.password?.message}
           />
 

@@ -9,7 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { animalSchema, type AnimalFormData } from '../schemas/animalSchema';
+import { MAX_AGE_DAYS, MAX_AGE_MONTHS, animalSchema, type AnimalFormData } from '../schemas/animalSchema';
 
 interface SelectOption<T extends string> {
   label: string;
@@ -46,6 +46,16 @@ const STATUS_OPTIONS: SelectOption<'disponible' | 'en_proceso' | 'adoptado'>[] =
   { label: 'En proceso', value: 'en_proceso' },
   { label: 'Adoptado', value: 'adoptado' },
 ];
+
+function limitNumericValue(value: string, maxValue: number): string {
+  const numericValue = value.replace(/\D/g, '');
+
+  if (!numericValue) {
+    return '';
+  }
+
+  return String(Math.min(Number(numericValue), maxValue));
+}
 
 const DEFAULT_VALUES: AnimalFormData = {
   nombre: '',
@@ -227,10 +237,26 @@ export function AnimalRegistrationForm({
             <FormField control={control} name="edad.anios" label="Años" placeholder="0" keyboardType="numeric" />
           </View>
           <View style={styles.ageField}>
-            <FormField control={control} name="edad.meses" label="Meses" placeholder="0" keyboardType="numeric" />
+            <FormField
+              control={control}
+              name="edad.meses"
+              label="Meses"
+              placeholder="0"
+              keyboardType="numeric"
+              maxLength={2}
+              formatValue={(value) => limitNumericValue(value, MAX_AGE_MONTHS)}
+            />
           </View>
           <View style={styles.ageField}>
-            <FormField control={control} name="edad.dias" label="Días" placeholder="0" keyboardType="numeric" />
+            <FormField
+              control={control}
+              name="edad.dias"
+              label="Días"
+              placeholder="0"
+              keyboardType="numeric"
+              maxLength={2}
+              formatValue={(value) => limitNumericValue(value, MAX_AGE_DAYS)}
+            />
           </View>
         </View>
         {errors.edad?.message ? <Text style={styles.inlineError}>{errors.edad.message}</Text> : null}

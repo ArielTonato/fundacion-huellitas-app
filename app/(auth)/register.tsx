@@ -25,6 +25,10 @@ import {
   View
 } from 'react-native';
 
+function formatPhone(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 10);
+}
+
 export default function RegisterScreen(): React.JSX.Element {
   const { signUp } = useAuth();
   const router = useRouter();
@@ -163,6 +167,7 @@ export default function RegisterScreen(): React.JSX.Element {
             label="Contraseña"
             placeholder="Minimo 6 caracteres"
             secureTextEntry
+            showSecureTextToggle
             errorMessage={errors.password?.message}
           />
 
@@ -172,6 +177,7 @@ export default function RegisterScreen(): React.JSX.Element {
             label="Confirmar contraseña"
             placeholder="Repite tu contraseña"
             secureTextEntry
+            showSecureTextToggle
             errorMessage={errors.confirmPassword?.message}
           />
 
@@ -181,6 +187,8 @@ export default function RegisterScreen(): React.JSX.Element {
             label="Telefono (opcional)"
             placeholder="0999999999"
             keyboardType="phone-pad"
+            maxLength={10}
+            formatValue={formatPhone}
             errorMessage={errors.telefono?.message}
           />
 

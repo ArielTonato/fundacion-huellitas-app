@@ -192,7 +192,7 @@ export function LocationPicker({ value, onChange, error }: LocationPickerProps):
           <Text style={styles.addressLoading}>Buscando dirección…</Text>
         ) : (
           <Text style={styles.addressText} numberOfLines={2}>
-            {value.direccion || 'Mové el mapa o usá el buscador.'}
+            {value.direccion || 'Mueve el mapa o usá el buscador.'}
           </Text>
         )}
       </View>

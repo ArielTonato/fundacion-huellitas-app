@@ -157,7 +157,7 @@ export function ReporteDetail({
               <Text style={styles.species}>{reporte.especie}</Text>
             </View>
             <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>Extraviada</Text>
+              <Text style={styles.statusBadgeText}>{reporte.sexo === 'macho' ? 'Extraviado' : 'Extraviada'}</Text>
             </View>
           </View>
 
